@@ -11,11 +11,10 @@
 
 
 #include "espmissingincludes.h"
-#include "ets_sys.h"
 #include "osapi.h"
-#include "uart_hw.h"
+#include "stdout.h"
 
-#ifdef DEBUG
+
 void ICACHE_FLASH_ATTR uart_tx_one_char(uint8 uart, uint8 TxChar)
 {
 	//Wait until there is room in the FIFO
@@ -24,16 +23,8 @@ void ICACHE_FLASH_ATTR uart_tx_one_char(uint8 uart, uint8 TxChar)
     //return OK;
 }
 
-void ICACHE_FLASH_ATTR uart0_tx_buffer(uint8 *buf, uint16 len)
-{
-  uint16 i;
 
-  for (i = 0; i < len; i++)
-  {
-    uart_tx_one_char(UART1, buf[i]);
-  }
-}
-
+#ifdef DEBUG
 static void ICACHE_FLASH_ATTR stdoutUartTxd(char c) {
 	//Wait until there is room in the FIFO
 	while (((READ_PERI_REG(UART_STATUS(0))>>UART_TXFIFO_CNT_S)&UART_TXFIFO_CNT)>=126) ;
@@ -56,18 +47,6 @@ static void ICACHE_FLASH_ATTR nullPutchar(char c) {}
 
 
 void stdoutInit() {
-	// TODO move to own file and enable it if debuging disabled and dmx enabled
-#ifdef USE_DMX_OUTPUT
-	//Enable TxD pin
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_U1TXD_BK);
-	
-	//Set baud rate and other serial parameters
-	uart_div_modify(1, UART_CLK_FREQ/250000);
-	WRITE_PERI_REG(UART_CONF0(1), (STICK_PARITY_DIS)|(TWO_STOP_BIT << UART_STOP_BIT_NUM_S)| \
-			(EIGHT_BITS << UART_BIT_NUM_S));
-#endif
-
-
 #ifdef DEBUG
 	//Enable TxD pin
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);

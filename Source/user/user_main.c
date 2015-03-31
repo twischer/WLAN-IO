@@ -24,7 +24,7 @@
 #include "gpio.h"
 #include "artnet.h"
 
-#define at_dmxTaskPrio        1
+#define at_dmxTaskPrio        USER_TASK_PRIO_0
 #define at_dmxTaskQueueLen    1
 
 static ETSTimer wifiModeTimer;
@@ -105,34 +105,48 @@ static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
 
 
 #ifdef USE_DMX_OUTPUT
+static void initDmxOut()
+{
+	//Enable TxD pin
+	PIN_FUNC_SELECT(DMX_IO_MUX, DMX_IO_TXD);
+
+	//Set baud rate and other serial parameters
+	uart_div_modify(DMX_UART, UART_CLK_FREQ / 250000);
+	WRITE_PERI_REG(UART_CONF0(DMX_UART), (STICK_PARITY_DIS)|(TWO_STOP_BIT << UART_STOP_BIT_NUM_S)| \
+			(EIGHT_BITS << UART_BIT_NUM_S));
+
+	system_os_task(at_dmxTask, at_dmxTaskPrio, at_dmxTaskQueue, at_dmxTaskQueueLen);
+	system_os_post(at_dmxTaskPrio, 0, 0);
+}
+
+
 static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 {
-//	static uint16 cnt = 0;
-	uint16 i;
-  
 	//BREAK
-	gpio_output_set(0, BIT2, BIT2, 0); 
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
+	gpio_output_set(0, DMX_IO_BIT, DMX_IO_BIT, 0);
+	PIN_FUNC_SELECT(DMX_IO_MUX, DMX_IO_GPIO);
 	os_delay_us(150);
 
 	//MARK
-	gpio_output_set(BIT2, 0, BIT2, 0);
+	gpio_output_set(DMX_IO_BIT, 0, DMX_IO_BIT, 0);
 	os_delay_us(54);
 	
 	//START CODE + DMX DATA
-	uart_tx_one_char(1, dmx_data[0]);
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_U1TXD_BK);
+	uart_tx_one_char(DMX_UART, dmx_data[0]);
+	PIN_FUNC_SELECT(DMX_IO_MUX, DMX_IO_TXD);
 	os_delay_us(54);
 	
 	//DMX data
-	for (i = 1; i < 513; i++)
+	for (uint16 i = 1; i < 513; i++)
 	{
-		uart_tx_one_char(1, dmx_data[i]);
+		uart_tx_one_char(DMX_UART, dmx_data[i]);
 		os_delay_us(54);
 	}
-	
+
+	system_os_post(at_dmxTaskPrio, 0, 0);
 }
 #endif
+
 
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
 void user_init(void) {
@@ -147,7 +161,7 @@ void user_init(void) {
 	wifi_softap_set_config(&apConfig);
 
 #ifdef USE_DMX_OUTPUT
-	system_os_task(at_dmxTask, at_dmxTaskPrio, at_dmxTaskQueue, at_dmxTaskQueueLen);
+	initDmxOut();
 #endif
 
 	os_timer_disarm(&wifiModeTimer);
