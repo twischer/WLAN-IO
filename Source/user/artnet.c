@@ -7,7 +7,7 @@
 #include "espmissingincludes.h"
 #include "c_types.h"
 #include "io.h"
-#include <gpio.h>
+#include "pwm.h"
 
 // ----------------------------------------------------------------------------
 // op-codes
@@ -251,15 +251,15 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		}
 
 
+		pwm_set_duty(dmx_data[1], 1);
 
-		//Set GPIO2 low
-
-		GPIO_OUTPUT_SET(0, (dmx_data[1] ? 1 : 0) );
 
 		static uint8_t old = 0;
 		if (old != dmx_data[1]) {
 			os_printf("%d\n", dmx_data[1]);
 			old = dmx_data[1];
+
+			pwm_start();
 		}
 	}
 }
@@ -336,12 +336,6 @@ void artnet_init() {
 	espconn_regist_recvcb(&artnetconn, artnet_get);
 	espconn_create(&artnetconn);
 
-	// Initialize the GPIO subsystem.
-	gpio_init();
-
-	//Set GPIO0 to output mode
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
-
-	//Set GPIO0 high
-	gpio_output_set(BIT0, 0, BIT0, 0);
+	uint8_t duty[] = {127, 255, 0};
+	pwm_init(100, duty);
 }

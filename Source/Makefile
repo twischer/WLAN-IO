@@ -22,7 +22,7 @@ SDK_EXTRA_INCLUDES ?= /opt/Espressif/include
 SDK_BASE	?=/opt/esp-open-sdk/sdk
 
 #Esptool.py path and port
-ESPTOOL		?= esptool.py
+ESPTOOL		?= /opt/esp-open-sdk/esptool/esptool.py
 ESPPORT		?= /dev/ttyUSB0
 
 # name for the target project
@@ -139,8 +139,10 @@ firmware:
 
 flash: $(FW_FILE_1) $(FW_FILE_2)
 	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin
-	sleep 10
 	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x40000 firmware/0x40000.bin
+	
+run: flash
+	espTerminal.sh
 
 webpages.espfs: html/ mkespfsimage/mkespfsimage
 	cd html; find | ../mkespfsimage/mkespfsimage  > ../webpages.espfs; cd ..

@@ -26,8 +26,11 @@ static ETSTimer resetBtntimer;
 
 os_event_t    at_procTaskQueue[at_procTaskQueueLen];
 static void at_procTask(os_event_t *events);
+
+#ifdef USE_DMX_OUTPUT
 os_event_t    at_dmxTaskQueue[at_dmxTaskQueueLen];
 static void at_dmxTask(os_event_t *events);
+#endif
 
 HttpdBuiltInUrl builtInUrls[]={
 	{"/", cgiRedirect, "/index.tpl"},
@@ -58,24 +61,24 @@ void at_recvTask() {
 }
 
 static void ICACHE_FLASH_ATTR resetBtnTimerCb(void *arg) {
-	static int resetCnt=0;
+//	static int resetCnt=0;
 	
-	system_os_post(at_dmxTaskPrio, 0, 0 );
+//	system_os_post(at_dmxTaskPrio, 0, 0 );
 
-	if (!GPIO_INPUT_GET(BTNGPIO)) {
-		resetCnt++;
-	} else {
-		if (resetCnt>=120) { //3 sec pressed
-			wifi_station_disconnect();
-			wifi_set_opmode(0x3); //reset to AP+STA mode
-			os_printf("Reset to AP mode. Restarting system...\n");
-			system_restart();
-		}
-		resetCnt=0;
-	}
+//	if (!GPIO_INPUT_GET(BTNGPIO)) {
+//		resetCnt++;
+//	} else {
+//		if (resetCnt>=120) { //3 sec pressed
+//			wifi_station_disconnect();
+//			wifi_set_opmode(0x3); //reset to AP+STA mode
+//			os_printf("Reset to AP mode. Restarting system...\n");
+//			system_restart();
+//		}
+//		resetCnt=0;
+//	}
 }
 
-
+#ifdef USE_DMX_OUTPUT
 static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 {
 	uint16 i;
@@ -102,10 +105,11 @@ static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 	}
 	
 }
+#endif
 
 void user_init(void) {
 
-	char passwd[128] ={'R','A','D','I','G','1','2','3'};
+//	char passwd[128] ={'R','A','D','I','G','1','2','3'};
 	
 	stdoutInit();
 	ioInit();
@@ -118,8 +122,12 @@ void user_init(void) {
 	wifi_softap_set_config(&apConfig);
 		
 	system_os_task(at_procTask, at_procTaskPrio, at_procTaskQueue, at_procTaskQueueLen);
+
+#ifdef USE_DMX_OUTPUT
 	system_os_task(at_dmxTask, at_dmxTaskPrio, at_dmxTaskQueue, at_dmxTaskQueueLen);
-    system_os_post(at_procTaskPrio, 0, 0 );
+#endif
+
+	system_os_post(at_procTaskPrio, 0, 0 );
 	
 	os_timer_disarm(&resetBtntimer);
 	os_timer_setfn(&resetBtntimer, resetBtnTimerCb, NULL);

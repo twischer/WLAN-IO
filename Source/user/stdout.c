@@ -44,10 +44,12 @@ static void ICACHE_FLASH_ATTR stdoutPutchar(char c) {
 
 void stdoutInit() {
 
+#ifdef USE_DMX_OUTPUT
 	uart_div_modify(1, UART_CLK_FREQ/250000);
 	WRITE_PERI_REG(UART_CONF0(1), (STICK_PARITY_DIS)|(TWO_STOP_BIT << UART_STOP_BIT_NUM_S)| \
 			(EIGHT_BITS << UART_BIT_NUM_S));
-  
+#endif
+
 	//Enable TxD pin
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);

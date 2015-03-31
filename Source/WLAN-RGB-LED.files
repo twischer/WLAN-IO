@@ -21,6 +21,8 @@ user/httpdespfs.c
 user/httpdespfs.h
 user/io.c
 user/io.h
+user/pwm.c
+user/pwm.h
 user/stdout.c
 user/stdout.h
 user/user_main.c
