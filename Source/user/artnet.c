@@ -6,8 +6,6 @@
 
 #include "espmissingincludes.h"
 #include "c_types.h"
-#include "io.h"
-#include <gpio.h>
 
 // ----------------------------------------------------------------------------
 // op-codes
@@ -67,7 +65,11 @@ uint8_t net;
 uint8_t artnet_subNet;
 uint8_t artnet_outputUniverse1;
 uint8_t dmx_data[513];
+//static uint8_t reply_transmit;
 
+static struct espconn artnetconn;
+static esp_udp artnetudp;
+	
 // ----------------------------------------------------------------------------
 // packet formats
 struct artnet_packet_addr {
@@ -184,7 +186,7 @@ struct artnet_dmx {
 
 // ----------------------------------------------------------------------------
 // send an ArtPollReply packet
-static void ICACHE_FLASH_ATTR artnet_sendPollReply (struct espconn *conn, unsigned char *packet, unsigned short packetlen) 
+void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 {
 		struct ip_info ipconfig;
 		char mac_addr[6];
@@ -223,9 +225,73 @@ static void ICACHE_FLASH_ATTR artnet_sendPollReply (struct espconn *conn, unsign
 		wifi_get_macaddr((uint8)STATION_IF,(uint8*) mac_addr);
 		memcpy(msg.MAC,mac_addr,6);
 		
-		espconn_sent(conn,(uint8_t*)&msg,sizeof(struct artnet_pollreply));
+		espconn_sent(&artnetconn,(uint8_t*)&msg,sizeof(struct artnet_pollreply));
+		//reply_transmit--;
 }
 
+/*
+// ----------------------------------------------------------------------------
+// send an ArtIpProgReply packet
+void artnet_sendIpProgReply(unsigned long target) {
+	struct artnet_ipprogreply *msg;
+
+	// clear packet buffer
+	for (unsigned int i = UDP_DATA_START; i < MTU_SIZE; i++) { //clear eth_buffer to 0
+		eth_buffer[i] = 0;
+	}
+
+	msg = (struct artnet_ipprogreply *)&eth_buffer[UDP_DATA_START];
+	strcpy_P((char*)msg->id,PSTR("Art-Net\0"));
+	msg->opcode = OP_IPPROGREPLY;
+
+	msg->versionH = 0;
+	msg->version = PROTOCOL_VERSION;
+
+	for (unsigned char i = 0; i < 4; i++) {
+		msg->progIp[i] = myip[i];
+		msg->progSm[i] = netmask[i];
+	}
+	msg->progPort[0] = (artnet_port >> 8) & 0xff;
+	msg->progPort[1] = artnet_port & 0xff;
+
+	create_new_udp_packet(SIZEOF_ARTNET_IP_PROG_REPLY, artnet_port, artnet_port, target);
+}
+*/
+
+// ----------------------------------------------------------------------------
+// process an ArtIpProg packet
+void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, unsigned short packetlen)  {
+	
+	if ((ipprog->command & 128) == 128) {	// enable programming
+		// program port
+		if ((ipprog->command & 1) == 1) {
+		}
+
+		// program subnet
+		if ((ipprog->command & 2) == 2) {
+		}
+
+		// program ip
+		if ((ipprog->command & 4) == 4) {
+			struct ip_info ipconfig;
+			os_printf("Received ip prog packet!\r\n");
+			
+			
+			memcpy(&ipconfig.ip.addr, &ipprog->progIp[0],4);
+			
+			
+			wifi_set_ip_info(STATION_IF, &ipconfig);
+			wifi_station_dhcpc_stop();
+		}
+
+		// reset to default
+		if ((ipprog->command & 8) == 8) {
+		}
+
+	}
+
+	//artnet_sendIpProgReply(ip->IP_Srcaddr);
+}
 
 // ----------------------------------------------------------------------------
 // Art-Net DMX packet
@@ -234,8 +300,6 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 	//os_printf("Received artnet output packet!\r\n");
 	struct artnet_dmx *dmx;
 	dmx = (struct artnet_dmx *) data;
-
-	//os_printf("Received artnet output packet! Universe %x\r\n", dmx->universe);
 	
 	uint16_t artnet_dmxChannels;
 	
@@ -248,18 +312,6 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		for(uint16_t tmp = 0;tmp<513;tmp++)
 		{
 			dmx_data[tmp+1] = data[tmp+18];
-		}
-
-
-
-		//Set GPIO2 low
-
-		GPIO_OUTPUT_SET(0, (dmx_data[1] ? 1 : 0) );
-
-		static uint8_t old = 0;
-		if (old != dmx_data[1]) {
-			os_printf("%d\n", dmx_data[1]);
-			old = dmx_data[1];
 		}
 	}
 }
@@ -276,7 +328,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	
 	//check the id
 	if(os_strcmp((char*)&header->id,"Art-Net\0") != 0){
-		os_printf("Wrong ArtNet header, discarded\r\n");
+		//os_printf("Wrong ArtNet header, discarded\r\n");
 		return;
 	}
 
@@ -285,7 +337,8 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 		//OP_POLL
 		case (OP_POLL):{
 			//os_printf("Received artnet poll packet!\r\n");
-			artnet_sendPollReply ((struct espconn *)arg,&eth_buffer[0],length);
+			//reply_transmit = 2;
+			artnet_sendPollReply();
 			return; 
 		}
 		//OP_POLLREPLY
@@ -306,7 +359,8 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 		}
 		//OP_IPPROG
 		case (OP_IPPROG):{
-			//os_printf("Received artnet ip prog packet!\r\n");
+			//os_printf("Received artnet prog packet!\r\n");
+			//processIpProgPacket ((struct espconn *)arg,&eth_buffer[0],length);
 			return;		
 		}	
 	}
@@ -323,25 +377,16 @@ void artnet_init() {
 	net = 0;
 	artnet_subNet = 0;
 	artnet_outputUniverse1 = 1;
+//	reply_transmit = 0;
 	strcpy((char*)shortname,"ESP8266 NODE");
 	strcpy((char*)longname,"ESP based Art-Net Node");
 	
-	static struct espconn artnetconn;
-	static esp_udp artnetudp;
 	artnetconn.type = ESPCONN_UDP;
 	artnetconn.state = ESPCONN_NONE;
 	artnetconn.proto.udp = &artnetudp;
 	artnetudp.local_port=ARTNET_PORT;
 	artnetconn.reverse = NULL;
+	
 	espconn_regist_recvcb(&artnetconn, artnet_get);
 	espconn_create(&artnetconn);
-
-	// Initialize the GPIO subsystem.
-	gpio_init();
-
-	//Set GPIO0 to output mode
-	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
-
-	//Set GPIO0 high
-	gpio_output_set(BIT0, 0, BIT0, 0);
 }

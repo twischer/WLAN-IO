@@ -1,19 +1,24 @@
+//Stupid bit of code that does the bare minimum to make os_printf work.
+
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * Jeroen Domburg <jeroen@spritesmods.com> wrote this file. As long as you retain 
+ * this notice you can do whatever you want with this stuff. If we meet some day, 
+ * and you think this stuff is worth it, you can buy me a beer in return. 
+ * ----------------------------------------------------------------------------
+ */
+
+
 #include "espmissingincludes.h"
 #include "ets_sys.h"
 #include "osapi.h"
 #include "uart_hw.h"
 
-
 void ICACHE_FLASH_ATTR uart_tx_one_char(uint8 uart, uint8 TxChar)
 {
-    while (true)
-    {
-      uint32 fifo_cnt = READ_PERI_REG(UART_STATUS(uart)) & (UART_TXFIFO_CNT<<UART_TXFIFO_CNT_S);
-      if ((fifo_cnt >> UART_TXFIFO_CNT_S & UART_TXFIFO_CNT) < 126) {
-        break;
-      }
-    }
-
+	//Wait until there is room in the FIFO
+	while (((READ_PERI_REG(UART_STATUS(uart))>>UART_TXFIFO_CNT_S)&UART_TXFIFO_CNT)>=126) ;
     WRITE_PERI_REG(UART_FIFO(uart) , TxChar);
     //return OK;
 }
@@ -44,10 +49,14 @@ static void ICACHE_FLASH_ATTR stdoutPutchar(char c) {
 
 void stdoutInit() {
 
+	//Enable TxD pin
+	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_U1TXD_BK);
+	
+	//Set baud rate and other serial parameters
 	uart_div_modify(1, UART_CLK_FREQ/250000);
 	WRITE_PERI_REG(UART_CONF0(1), (STICK_PARITY_DIS)|(TWO_STOP_BIT << UART_STOP_BIT_NUM_S)| \
 			(EIGHT_BITS << UART_BIT_NUM_S));
-  
+			
 	//Enable TxD pin
 	PIN_PULLUP_DIS(PERIPHS_IO_MUX_U0TXD_U);
 	PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
