@@ -1,168 +1,337 @@
-# tnx to mamalala
-# Changelog
-# Changed the variables to include the header file directory
-# Added global var for the XTENSA tool root
+#  copyright (c) 2010 Espressif System
 #
-# This make file still needs some work.
-#
-#
-# Output directors to store intermediate compiled files
-# relative to the project directory
-#
-BUILD_BASE	= build
-FW_BASE		= firmware
+ifndef PDIR
 
-# Base directory for the compiler
-XTENSA_TOOLS_ROOT ?= /opt/esp-open-sdk/xtensa-lx106-elf/bin
-
-#Extra Tensilica includes from the ESS VM
-SDK_EXTRA_INCLUDES ?= /opt/Espressif/include
-
-# base directory of the ESP8266 SDK package, absolute
-SDK_BASE	?=/opt/esp-open-sdk/sdk
-
-#Esptool.py path and port
-ESPTOOL		?= /opt/esp-open-sdk/esptool/esptool.py
-ESPPORT		?= /dev/ttyUSB0
-
-# name for the target project
-TARGET		= httpd
-
-# which modules (subdirectories) of the project to include in compiling
-MODULES		= driver user
-EXTRA_INCDIR	= include \
-		. \
-		lib/heatshrink/ \
-		$(SDK_EXTRA_INCLUDES)
-
-# libraries used in this project, mainly provided by the SDK
-LIBS		= c gcc hal pp phy net80211 lwip wpa main
-
-# compiler flags using during compilation of source files
-CFLAGS		= -Os -ggdb -std=c99 -Wno-error -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH
-
-# linker flags used to generate the main object file
-LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-
-# linker script used for the above linkier step
-LD_SCRIPT	= eagle.app.v6.ld
-
-# various paths from the SDK used in this project
-SDK_LIBDIR	= lib
-SDK_LDDIR	= ld
-SDK_INCDIR	= include include/json
-
-# we create two different files for uploading into the flash
-# these are the names and options to generate them
-FW_FILE_1	= 0x00000
-FW_FILE_1_ARGS	= -bo $@ -bs .text -bs .data -bs .rodata -bc -ec
-FW_FILE_2	= 0x40000
-FW_FILE_2_ARGS	= -es .irom0.text $@ -ec
-FW_FILE_3	= webpages.espfs
-
-# select which tools to use as compiler, librarian and linker
-CC		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
-AR		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-ar
-LD		:= $(XTENSA_TOOLS_ROOT)/xtensa-lx106-elf-gcc
-
-
-
-####
-#### no user configurable options below here
-####
-FW_TOOL		?= /usr/bin/esptool
-SRC_DIR		:= $(MODULES)
-BUILD_DIR	:= $(addprefix $(BUILD_BASE)/,$(MODULES))
-
-SDK_LIBDIR	:= $(addprefix $(SDK_BASE)/,$(SDK_LIBDIR))
-SDK_INCDIR	:= $(addprefix -I$(SDK_BASE)/,$(SDK_INCDIR))
-
-SRC		:= $(foreach sdir,$(SRC_DIR),$(wildcard $(sdir)/*.c))
-OBJ		:= $(patsubst %.c,$(BUILD_BASE)/%.o,$(SRC))
-LIBS		:= $(addprefix -l,$(LIBS))
-APP_AR		:= $(addprefix $(BUILD_BASE)/,$(TARGET)_app.a)
-TARGET_OUT	:= $(addprefix $(BUILD_BASE)/,$(TARGET).out)
-
-LD_SCRIPT	:= $(addprefix -T$(SDK_BASE)/$(SDK_LDDIR)/,$(LD_SCRIPT))
-
-INCDIR	:= $(addprefix -I,$(SRC_DIR))
-EXTRA_INCDIR	:= $(addprefix -I,$(EXTRA_INCDIR))
-MODULE_INCDIR	:= $(addsuffix /include,$(INCDIR))
-
-FW_FILE_1	:= $(addprefix $(FW_BASE)/,$(FW_FILE_1).bin)
-FW_FILE_2	:= $(addprefix $(FW_BASE)/,$(FW_FILE_2).bin)
-
-V ?= $(VERBOSE)
-ifeq ("$(V)","1")
-Q :=
-vecho := @true
-else
-Q := @
-vecho := @echo
 endif
 
-vpath %.c $(SRC_DIR)
+ifeq ($(COMPILE), gcc)
+	AR = xtensa-lx106-elf-ar
+	CC = xtensa-lx106-elf-gcc
+	NM = xtensa-lx106-elf-nm
+	CPP = xtensa-lx106-elf-cpp
+	OBJCOPY = xtensa-lx106-elf-objcopy
+	OBJDUMP = xtensa-lx106-elf-objdump
+else
+	AR = xt-ar
+	CC = xt-xcc
+	NM = xt-nm
+	CPP = xt-cpp
+	OBJCOPY = xt-objcopy
+	OBJDUMP = xt-objdump
+endif
 
-define compile-objects
-$1/%.o: %.c
-	$(vecho) "CC $$<"
-	$(Q) $(CC) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS)  -c $$< -o $$@
+BOOT?=none
+APP?=0
+SPI_SPEED?=40
+SPI_MODE?=QIO
+SPI_SIZE?=512
+
+ifeq ($(BOOT), new)
+    boot = new
+else
+    ifeq ($(BOOT), old)
+        boot = old
+    else
+        boot = none
+    endif
+endif
+
+ifeq ($(APP), 1)
+    app = 1
+else
+    ifeq ($(APP), 2)
+        app = 2
+    else
+        app = 0
+    endif
+endif
+
+ifeq ($(SPI_SPEED), 26.7)
+    freqdiv = 1
+else
+    ifeq ($(SPI_SPEED), 20)
+        freqdiv = 2
+    else
+        ifeq ($(SPI_SPEED), 80)
+            freqdiv = 15
+        else
+            freqdiv = 0
+        endif
+    endif
+endif
+
+
+ifeq ($(SPI_MODE), QOUT)
+    mode = 1
+else
+    ifeq ($(SPI_MODE), DIO)
+        mode = 2
+    else
+        ifeq ($(SPI_MODE), DOUT)
+            mode = 3
+        else
+            mode = 0
+        endif
+    endif
+endif
+
+# flash larger than 1024KB only use 1024KB to storage user1.bin and user2.bin
+ifeq ($(SPI_SIZE), 256)
+    size = 1
+    flash = 256
+else
+    ifeq ($(SPI_SIZE), 1024)
+        size = 2
+        flash = 1024
+    else
+        ifeq ($(SPI_SIZE), 2048)
+            size = 3
+            flash = 1024
+        else
+            ifeq ($(SPI_SIZE), 4096)
+                size = 4
+                flash = 1024
+            else
+                size = 0
+                flash = 512
+            endif
+        endif
+    endif
+endif
+
+ifeq ($(flash), 512)
+  ifeq ($(app), 1)
+    addr = 0x01000
+  else
+    ifeq ($(app), 2)
+      addr = 0x41000
+    endif
+  endif
+else
+  ifeq ($(flash), 1024)
+    ifeq ($(app), 1)
+      addr = 0x01000
+    else
+      ifeq ($(app), 2)
+        addr = 0x81000
+      endif
+    endif
+  endif
+endif
+        
+LD_FILE = $(LDDIR)/eagle.app.v6.ld
+
+ifneq ($(boot), none)
+ifneq ($(app),0)
+	LD_FILE = $(LDDIR)/eagle.app.v6.$(boot).$(flash).app$(app).ld
+	BIN_NAME = user$(app).$(flash).$(boot)
+endif
+else
+    app = 0
+endif
+
+CSRCS ?= $(wildcard *.c)
+ASRCs ?= $(wildcard *.s)
+ASRCS ?= $(wildcard *.S)
+SUBDIRS ?= $(patsubst %/,%,$(dir $(wildcard */Makefile)))
+
+ODIR := .output
+OBJODIR := $(ODIR)/$(TARGET)/$(FLAVOR)/obj
+
+OBJS := $(CSRCS:%.c=$(OBJODIR)/%.o) \
+        $(ASRCs:%.s=$(OBJODIR)/%.o) \
+        $(ASRCS:%.S=$(OBJODIR)/%.o)
+
+DEPS := $(CSRCS:%.c=$(OBJODIR)/%.d) \
+        $(ASRCs:%.s=$(OBJODIR)/%.d) \
+        $(ASRCS:%.S=$(OBJODIR)/%.d)
+
+LIBODIR := $(ODIR)/$(TARGET)/$(FLAVOR)/lib
+OLIBS := $(GEN_LIBS:%=$(LIBODIR)/%)
+
+IMAGEODIR := $(ODIR)/$(TARGET)/$(FLAVOR)/image
+OIMAGES := $(GEN_IMAGES:%=$(IMAGEODIR)/%)
+
+BINODIR := $(ODIR)/$(TARGET)/$(FLAVOR)/bin
+OBINS := $(GEN_BINS:%=$(BINODIR)/%)
+
+CCFLAGS += 			\
+	-g			\
+	-O2			\
+	-Wpointer-arith		\
+	-Wundef			\
+	-Werror			\
+	-Wl,-EL			\
+	-fno-inline-functions	\
+	-nostdlib       \
+	-mlongcalls	\
+	-mtext-section-literals
+#	-Wall			
+
+CFLAGS = $(CCFLAGS) $(DEFINES) $(EXTRA_CCFLAGS) $(INCLUDES)
+DFLAGS = $(CCFLAGS) $(DDEFINES) $(EXTRA_CCFLAGS) $(INCLUDES)
+
+
+#############################################################
+# Functions
+#
+
+define ShortcutRule
+$(1): .subdirs $(2)/$(1)
 endef
 
-.PHONY: all checkdirs clean
+define MakeLibrary
+DEP_LIBS_$(1) = $$(foreach lib,$$(filter %.a,$$(COMPONENTS_$(1))),$$(dir $$(lib))$$(LIBODIR)/$$(notdir $$(lib)))
+DEP_OBJS_$(1) = $$(foreach obj,$$(filter %.o,$$(COMPONENTS_$(1))),$$(dir $$(obj))$$(OBJODIR)/$$(notdir $$(obj)))
+$$(LIBODIR)/$(1).a: $$(OBJS) $$(DEP_OBJS_$(1)) $$(DEP_LIBS_$(1)) $$(DEPENDS_$(1))
+	@mkdir -p $$(LIBODIR)
+	$$(if $$(filter %.a,$$?),mkdir -p $$(EXTRACT_DIR)_$(1))
+	$$(if $$(filter %.a,$$?),cd $$(EXTRACT_DIR)_$(1); $$(foreach lib,$$(filter %.a,$$?),$$(AR) xo $$(UP_EXTRACT_DIR)/$$(lib);))
+	$$(AR) ru $$@ $$(filter %.o,$$?) $$(if $$(filter %.a,$$?),$$(EXTRACT_DIR)_$(1)/*.o)
+	$$(if $$(filter %.a,$$?),$$(RM) -r $$(EXTRACT_DIR)_$(1))
+endef
 
-all: checkdirs $(TARGET_OUT) $(FW_FILE_1) $(FW_FILE_2)
+define MakeImage
+DEP_LIBS_$(1) = $$(foreach lib,$$(filter %.a,$$(COMPONENTS_$(1))),$$(dir $$(lib))$$(LIBODIR)/$$(notdir $$(lib)))
+DEP_OBJS_$(1) = $$(foreach obj,$$(filter %.o,$$(COMPONENTS_$(1))),$$(dir $$(obj))$$(OBJODIR)/$$(notdir $$(obj)))
+$$(IMAGEODIR)/$(1).out: $$(OBJS) $$(DEP_OBJS_$(1)) $$(DEP_LIBS_$(1)) $$(DEPENDS_$(1))
+	@mkdir -p $$(IMAGEODIR)
+	$$(CC) $$(LDFLAGS) $$(if $$(LINKFLAGS_$(1)),$$(LINKFLAGS_$(1)),$$(LINKFLAGS_DEFAULT) $$(OBJS) $$(DEP_OBJS_$(1)) $$(DEP_LIBS_$(1))) -o $$@ 
+endef
 
-$(FW_FILE_1): $(TARGET_OUT) firmware
-	$(vecho) "FW $@"
-	$(Q) $(FW_TOOL) -eo $(TARGET_OUT) $(FW_FILE_1_ARGS)
-
-$(FW_FILE_2): $(TARGET_OUT) firmware
-	$(vecho) "FW $@"
-	$(Q) $(FW_TOOL) -eo $(TARGET_OUT) $(FW_FILE_2_ARGS)
-
-$(TARGET_OUT): $(APP_AR)
-	$(vecho) "LD $@"
-	$(Q) $(LD) -L$(SDK_LIBDIR) $(LD_SCRIPT) $(LDFLAGS) -Wl,--start-group $(LIBS) $(APP_AR) -Wl,--end-group -o $@
-
-$(APP_AR): $(OBJ)
-	$(vecho) "AR $@"
-	$(Q) $(AR) cru $@ $^
-
-checkdirs: $(BUILD_DIR) $(FW_BASE)
-
-$(BUILD_DIR):
-	$(Q) mkdir -p $@
-
-firmware:
-	$(Q) mkdir -p $@
-
-flash: $(FW_FILE_1) $(FW_FILE_2)
-	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x00000 firmware/0x00000.bin
-	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x40000 firmware/0x40000.bin
+$(BINODIR)/%.bin: $(IMAGEODIR)/%.out
+	@mkdir -p $(BINODIR)
 	
-run: flash
-	espTerminal.sh
+ifeq ($(APP), 0)
+	@$(RM) -r ../bin/eagle.S ../bin/eagle.dump
+	@$(OBJDUMP) -x -s $< > ../bin/eagle.dump
+	@$(OBJDUMP) -S $< > ../bin/eagle.S
+else
+	@$(RM) -r ../bin/upgrade/$(BIN_NAME).S ../bin/upgrade/$(BIN_NAME).dump
+	@$(OBJDUMP) -x -s $< > ../bin/upgrade/$(BIN_NAME).dump
+	@$(OBJDUMP) -S $< > ../bin/upgrade/$(BIN_NAME).S
+endif
 
-webpages.espfs: html/ mkespfsimage/mkespfsimage
-	cd html; find | ../mkespfsimage/mkespfsimage  > ../webpages.espfs; cd ..
+	@$(OBJCOPY) --only-section .text -O binary $< eagle.app.v6.text.bin
+	@$(OBJCOPY) --only-section .data -O binary $< eagle.app.v6.data.bin
+	@$(OBJCOPY) --only-section .rodata -O binary $< eagle.app.v6.rodata.bin
+	@$(OBJCOPY) --only-section .irom0.text -O binary $< eagle.app.v6.irom0text.bin
 
-mkespfsimage/mkespfsimage: mkespfsimage/
-	make -C mkespfsimage
+	@echo ""
+	@echo "!!!"
+	
+ifeq ($(app), 0)
+	@python ../tools/gen_appbin.py $< 0 $(mode) $(freqdiv) $(size)
+	@mv eagle.app.flash.bin ../bin/eagle.flash.bin
+	@mv eagle.app.v6.irom0text.bin ../bin/eagle.irom0text.bin
+	@rm eagle.app.v6.*
+	@echo "No boot needed."
+	@echo "Generate eagle.flash.bin and eagle.irom0text.bin successully in folder bin."
+	@echo "eagle.flash.bin-------->0x00000"
+	@echo "eagle.irom0text.bin---->0x40000"
+else
+    ifeq ($(boot), new)
+		@python ../tools/gen_appbin.py $< 2 $(mode) $(freqdiv) $(size)
+		@echo "Support boot_v1.2 and +"
+    else
+		@python ../tools/gen_appbin.py $< 1 $(mode) $(freqdiv) $(size)
+		@echo "Support boot_v1.1 and +"
+    endif
 
-htmlflash: webpages.espfs
-	if [ $$(stat -c '%s' webpages.espfs) -gt $$(( 0x2E000 )) ]; then echo "webpages.espfs too big!"; false; fi
-	-$(ESPTOOL) --port $(ESPPORT) write_flash 0x12000 webpages.espfs
+	@mv eagle.app.flash.bin ../bin/upgrade/$(BIN_NAME).bin
+	@rm eagle.app.v6.*
+	@echo "Generate $(BIN_NAME).bin successully in folder bin/upgrade."
+	@echo "boot.bin------------>0x00000"
+	@echo "$(BIN_NAME).bin--->$(addr)"
+endif
+
+	@echo "!!!"
+
+#############################################################
+# Rules base
+# Should be done in top-level makefile only
+#
+
+all:	.subdirs $(OBJS) $(OLIBS) $(OIMAGES) $(OBINS) $(SPECIAL_MKTARGETS)
 
 clean:
-	$(Q) rm -f $(APP_AR)
-	$(Q) rm -f $(TARGET_OUT)
-	$(Q) find $(BUILD_BASE) -type f | xargs rm -f
+	$(foreach d, $(SUBDIRS), $(MAKE) -C $(d) clean;)
+	$(RM) -r $(ODIR)/$(TARGET)/$(FLAVOR)
 
+clobber: $(SPECIAL_CLOBBER)
+	$(foreach d, $(SUBDIRS), $(MAKE) -C $(d) clobber;)
+	$(RM) -r $(ODIR)
 
-	$(Q) rm -f $(FW_FILE_1)
-	$(Q) rm -f $(FW_FILE_2)
-	$(Q) rm -f $(FW_FILE_3)
-	$(Q) rm -rf $(FW_BASE)
+.subdirs:
+	@set -e; $(foreach d, $(SUBDIRS), $(MAKE) -C $(d);)
 
-$(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
+#.subdirs:
+#	$(foreach d, $(SUBDIRS), $(MAKE) -C $(d))
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),clobber)
+ifdef DEPS
+sinclude $(DEPS)
+endif
+endif
+endif
+
+$(OBJODIR)/%.o: %.c
+	@mkdir -p $(OBJODIR);
+	$(CC) $(if $(findstring $<,$(DSRCS)),$(DFLAGS),$(CFLAGS)) $(COPTS_$(*F)) -o $@ -c $<
+
+$(OBJODIR)/%.d: %.c
+	@mkdir -p $(OBJODIR);
+	@echo DEPEND: $(CC) -M $(CFLAGS) $<
+	@set -e; rm -f $@; \
+	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+$(OBJODIR)/%.o: %.s
+	@mkdir -p $(OBJODIR);
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+$(OBJODIR)/%.d: %.s
+	@mkdir -p $(OBJODIR); \
+	set -e; rm -f $@; \
+	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+$(OBJODIR)/%.o: %.S
+	@mkdir -p $(OBJODIR);
+	$(CC) $(CFLAGS) -D__ASSEMBLER__ -o $@ -c $<
+
+$(OBJODIR)/%.d: %.S
+	@mkdir -p $(OBJODIR); \
+	set -e; rm -f $@; \
+	$(CC) -M $(CFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\.o\)[ :]*,$(OBJODIR)/\1 $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+$(foreach lib,$(GEN_LIBS),$(eval $(call ShortcutRule,$(lib),$(LIBODIR))))
+
+$(foreach image,$(GEN_IMAGES),$(eval $(call ShortcutRule,$(image),$(IMAGEODIR))))
+
+$(foreach bin,$(GEN_BINS),$(eval $(call ShortcutRule,$(bin),$(BINODIR))))
+
+$(foreach lib,$(GEN_LIBS),$(eval $(call MakeLibrary,$(basename $(lib)))))
+
+$(foreach image,$(GEN_IMAGES),$(eval $(call MakeImage,$(basename $(image)))))
+
+#############################################################
+# Recursion Magic - Don't touch this!!
+#
+# Each subtree potentially has an include directory
+#   corresponding to the common APIs applicable to modules
+#   rooted at that subtree. Accordingly, the INCLUDE PATH
+#   of a module can only contain the include directories up
+#   its parent path, and not its siblings
+#
+# Required for each makefile to inherit from the parent
+#
+
+INCLUDES := $(INCLUDES) -I $(PDIR)include -I $(PDIR)include/$(TARGET)
+PDIR := ../$(PDIR)
+sinclude $(PDIR)Makefile
