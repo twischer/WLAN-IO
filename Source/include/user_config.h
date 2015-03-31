@@ -2,7 +2,7 @@
 #define _USER_CONFIG_H_
 
 /* enables the stdout and prints denug messages */
-//#define DEBUG
+#define DEBUG
 
 //#define USE_DMX_OUTPUT
 

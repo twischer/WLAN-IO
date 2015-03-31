@@ -27,7 +27,7 @@
 #define at_dmxTaskPrio        1
 #define at_dmxTaskQueueLen    1
 
-//static ETSTimer resetBtntimer;
+static ETSTimer wifiModeTimer;
 
 
 #ifdef USE_DMX_OUTPUT
@@ -85,23 +85,23 @@ HttpdBuiltInUrl builtInUrls[]={
 };
 
 
-// TODO auto change back to AP+STA, if no AP
-//static void ICACHE_FLASH_ATTR resetBtnTimerCb(void *arg) {
-//	static int resetCnt=0;
-//
-//	system_os_post(at_dmxTaskPrio, 0, 0 );
-//
-//	if (!GPIO_INPUT_GET(BTNGPIO)) {
-//		resetCnt++;
-//		PDBG("KEY pressed!\n");
-//	} else {
-//		if (resetCnt >= 30)
-//		{
-//			system_restart();
-//		}
-//		resetCnt = 0;
-//	}
-//}
+static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
+	const uint8 status = wifi_station_get_connect_status();
+	const uint8 opmode = wifi_get_opmode();
+
+	if (status == STATION_GOT_IP) {
+		if (opmode == STATIONAP_MODE) {
+			PDBG("Successful connected to station. Disable AP mode.\n");
+			wifi_set_opmode(STATION_MODE);
+		}
+
+	} else {
+		if (opmode != STATIONAP_MODE) {
+			PDBG("Station lost. Activating AP+STA mode.\n");
+			wifi_set_opmode(STATIONAP_MODE);
+		}
+	}
+}
 
 
 #ifdef USE_DMX_OUTPUT
@@ -136,16 +136,11 @@ static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
 void user_init(void) {
-
-//	char passwd[128] ={'R','A','D','I','G','1','2','3'};
-
 	stdoutInit();
 
-	
-	wifi_set_opmode(3);
+	wifi_set_opmode(STATIONAP_MODE);
 	struct softap_config apConfig;
 	wifi_softap_get_config(&apConfig);
-	//os_strncpy((char*)apConfig.password, passwd, 64);
 	apConfig.authmode = AUTH_OPEN;
 	apConfig.max_connection = 4;
 	apConfig.channel = 2;
@@ -155,9 +150,9 @@ void user_init(void) {
 	system_os_task(at_dmxTask, at_dmxTaskPrio, at_dmxTaskQueue, at_dmxTaskQueueLen);
 #endif
 
-//	os_timer_disarm(&resetBtntimer);
-//	os_timer_setfn(&resetBtntimer, resetBtnTimerCb, NULL);
-//	os_timer_arm(&resetBtntimer, 30, 1);
+	os_timer_disarm(&wifiModeTimer);
+	os_timer_setfn(&wifiModeTimer, wifiModeTimerCb, NULL);
+	os_timer_arm(&wifiModeTimer, 5000, 1);
 
 	httpdInit(builtInUrls, 80);
 	artnet_init();
