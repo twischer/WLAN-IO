@@ -278,7 +278,7 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 		// program ip
 		if ((ipprog->command & 4) == 4) {
 			struct ip_info ipconfig;
-			os_printf("Received ip prog packet!\r\n");
+			PDBG("Received ip prog packet!\r\n");
 			
 			
 			memcpy(&ipconfig.ip.addr, &ipprog->progIp[0],4);
@@ -301,7 +301,7 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 // Art-Net DMX packet
 static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned short packetlen)
 {
-	//os_printf("Received artnet output packet!\r\n");
+	//PDBG("Received artnet output packet!\r\n");
 	struct artnet_dmx *dmx;
 	dmx = (struct artnet_dmx *) data;
 	
@@ -323,7 +323,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 			const uint16 dmxAddr = pwmStartAddr + i;
 			/* pwm_start has to be called, if the values hve changed */
 			if ( pwm_set_duty(dmx_data[dmxAddr], i) ) {
-				os_printf("%d: %d\n", i, dmx_data[dmxAddr]);
+				PDBG("%d: %d\n", i, dmx_data[dmxAddr]);
 				dataChanged = true;
 			}
 		}
@@ -339,7 +339,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 // receive Art-Net packet
 static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short length) {
 
-	//os_printf("Get on Art Net Port\n");
+	//PDBG("Get on Art Net Port\n");
 	unsigned char *eth_buffer =(unsigned char *)data;
 	
 	struct artnet_header *header;
@@ -347,7 +347,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	
 	//check the id
 	if(os_strcmp((char*)&header->id,"Art-Net\0") != 0){
-		//os_printf("Wrong ArtNet header, discarded\r\n");
+		//PDBG("Wrong ArtNet header, discarded\r\n");
 		return;
 	}
 
@@ -355,30 +355,30 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	{
 		//OP_POLL
 		case (OP_POLL):{
-			//os_printf("Received artnet poll packet!\r\n");
+			//PDBG("Received artnet poll packet!\r\n");
 			//reply_transmit = 2;
 			artnet_sendPollReply();
 			return; 
 		}
 		//OP_POLLREPLY
 		case (OP_POLLREPLY):{
-			//os_printf("Received artnet poll reply packet!\r\n");
+			//PDBG("Received artnet poll reply packet!\r\n");
 			return;
 		}
 		//OP_OUTPUT	
 		case (OP_OUTPUT):{
-			//os_printf("Received artnet output packet!\r\n");
+			//PDBG("Received artnet output packet!\r\n");
 			artnet_recv_opoutput (&eth_buffer[0],length);
 			return; 
 		}
 		//OP_ADDRESS
 		case (OP_ADDRESS):{
-			//os_printf("Received artnet address packet!\r\n");
+			//PDBG("Received artnet address packet!\r\n");
 			return;
 		}
 		//OP_IPPROG
 		case (OP_IPPROG):{
-			//os_printf("Received artnet prog packet!\r\n");
+			//PDBG("Received artnet prog packet!\r\n");
 			//processIpProgPacket ((struct espconn *)arg,&eth_buffer[0],length);
 			return;		
 		}	
@@ -390,7 +390,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 void artnet_init() {
 
 
-	os_printf("Art Net Init\n");
+	PDBG("Art Net Init\n");
 	
 	//Init Data
 	net = 0;

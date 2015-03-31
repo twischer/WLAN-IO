@@ -45,7 +45,7 @@ ScanResultData cgiWifiAps;
 void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status) {
 	int n;
 	struct bss_info *bss_link = (struct bss_info *)arg;
-	os_printf("wifiScanDoneCb %d\n", status);
+	PDBG("wifiScanDoneCb %d\n", status);
 	if (status!=OK) {
 		cgiWifiAps.scanInProgress=0;
 		return;
@@ -66,7 +66,7 @@ void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status) {
 	//Allocate memory for access point data
 	cgiWifiAps.apData=(ApData **)os_malloc(sizeof(ApData *)*n);
 	cgiWifiAps.noAps=n;
-	os_printf("Scan done: found %d APs\n", n);
+	PDBG("Scan done: found %d APs\n", n);
 
 	//Copy access point data to the static struct
 	n=0;
@@ -75,7 +75,7 @@ void ICACHE_FLASH_ATTR wifiScanDoneCb(void *arg, STATUS status) {
 		if (n>=cgiWifiAps.noAps) {
 			//This means the bss_link changed under our nose. Shouldn't happen!
 			//Break because otherwise we will write in unallocated memory.
-			os_printf("Huh? I have more than the allocated %d aps!\n", cgiWifiAps.noAps);
+			PDBG("Huh? I have more than the allocated %d aps!\n", cgiWifiAps.noAps);
 			break;
 		}
 		//Save the ap data.
@@ -145,11 +145,11 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 	int x=wifi_station_get_connect_status();
 	if (x==STATION_GOT_IP) {
 		//Go to STA mode. This needs a reset, so do that.
-		os_printf("Got IP. Going into STA mode..\n");
+		PDBG("Got IP. Going into STA mode..\n");
 		wifi_set_opmode(1);
 		system_restart();
 	} else {
-		os_printf("Connect fail. Not going into STA-only mode.\n");
+		PDBG("Connect fail. Not going into STA-only mode.\n");
 		//Maybe also pass this through on the webpage?
 	}
 }
@@ -160,7 +160,7 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 static void ICACHE_FLASH_ATTR reassTimerCb(void *arg) {
 	int x;
 	static ETSTimer resetTimer;
-	os_printf("Try to connect to AP....\n");
+	PDBG("Try to connect to AP....\n");
 	wifi_station_disconnect();
 	wifi_station_set_config(&stconf);
 	wifi_station_connect();
@@ -191,7 +191,7 @@ int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
 
 	os_strncpy((char*)stconf.ssid, essid, 32);
 	os_strncpy((char*)stconf.password, passwd, 64);
-	os_printf("Try to connect to AP %s pw %s\n", essid, passwd);
+	PDBG("Try to connect to AP %s pw %s\n", essid, passwd);
 
 	//Schedule disconnect/connect
 	os_timer_disarm(&reassTimer);
@@ -219,7 +219,7 @@ int ICACHE_FLASH_ATTR cgiWifiSetMode(HttpdConnData *connData) {
 
 	len=httpdFindArg(connData->getArgs, "mode", buff, sizeof(buff));
 	if (len!=0) {
-		os_printf("cgiWifiSetMode: %s\n", buff);
+		PDBG("cgiWifiSetMode: %s\n", buff);
 #ifndef DEMO_MODE
 		wifi_set_opmode(atoi(buff));
 		system_restart();

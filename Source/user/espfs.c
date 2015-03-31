@@ -117,23 +117,23 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 		//Grab the next file header.
 		os_memcpy(&h, p, sizeof(EspFsHeader));
 		if (h.magic!=0x73665345) {
-			os_printf("Magic mismatch. EspFS image broken.\n");
+			PDBG("Magic mismatch. EspFS image broken.\n");
 			return NULL;
 		}
 		if (h.flags&FLAG_LASTFILE) {
-			os_printf("End of image.\n");
+			PDBG("End of image.\n");
 			return NULL;
 		}
 		//Grab the name of the file.
 		p+=sizeof(EspFsHeader); 
 		os_memcpy(namebuf, p, sizeof(namebuf));
-//		os_printf("Found file '%s'. Namelen=%x fileLenComp=%x, compr=%d flags=%d\n", 
+//		PDBG("Found file '%s'. Namelen=%x fileLenComp=%x, compr=%d flags=%d\n", 
 //				namebuf, (unsigned int)h.nameLen, (unsigned int)h.fileLenComp, h.compression, h.flags);
 		if (os_strcmp(namebuf, fileName)==0) {
 			//Yay, this is the file we need!
 			p+=h.nameLen; //Skip to content.
 			r=(EspFsFile *)os_malloc(sizeof(EspFsFile)); //Alloc file desc mem
-//			os_printf("Alloc %p\n", r);
+//			PDBG("Alloc %p\n", r);
 			if (r==NULL) return NULL;
 			r->header=(EspFsHeader *)hpos;
 			r->decompressor=h.compression;
@@ -150,12 +150,12 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 				//Decoder params are stored in 1st byte.
 				memcpyAligned(&parm, r->posComp, 1);
 				r->posComp++;
-				os_printf("Heatshrink compressed file; decode parms = %x\n", parm);
+				PDBG("Heatshrink compressed file; decode parms = %x\n", parm);
 				dec=heatshrink_decoder_alloc(16, (parm>>4)&0xf, parm&0xf);
 				r->decompData=dec;
 #endif
 			} else {
-				os_printf("Invalid compression: %d\n", h.compression);
+				PDBG("Invalid compression: %d\n", h.compression);
 				return NULL;
 			}
 			return r;
@@ -177,11 +177,11 @@ int ICACHE_FLASH_ATTR espFsRead(EspFsFile *fh, char *buff, int len) {
 		int toRead;
 		toRead=flen-(fh->posComp-fh->posStart);
 		if (len>toRead) len=toRead;
-//		os_printf("Reading %d bytes from %x\n", len, (unsigned int)fh->posComp);
+//		PDBG("Reading %d bytes from %x\n", len, (unsigned int)fh->posComp);
 		memcpyAligned(buff, fh->posComp, len);
 		fh->posDecomp+=len;
 		fh->posComp+=len;
-//		os_printf("Done reading %d bytes, pos=%x\n", len, fh->posComp);
+//		PDBG("Done reading %d bytes, pos=%x\n", len, fh->posComp);
 		return len;
 #ifdef EFS_HEATSHRINK
 	} else if (fh->decompressor==COMPRESS_HEATSHRINK) {
@@ -189,7 +189,7 @@ int ICACHE_FLASH_ATTR espFsRead(EspFsFile *fh, char *buff, int len) {
 		unsigned int elen, rlen;
 		char ebuff[16];
 		heatshrink_decoder *dec=(heatshrink_decoder *)fh->decompData;
-//		os_printf("Alloc %p\n", dec);
+//		PDBG("Alloc %p\n", dec);
 		while(decoded<len) {
 			//Feed data into the decompressor
 			//ToDo: Check ret val of heatshrink fns for errors
@@ -222,10 +222,10 @@ void ICACHE_FLASH_ATTR espFsClose(EspFsFile *fh) {
 	if (fh->decompressor==COMPRESS_HEATSHRINK) {
 		heatshrink_decoder *dec=(heatshrink_decoder *)fh->decompData;
 		heatshrink_decoder_free(dec);
-//		os_printf("Freed %p\n", dec);
+//		PDBG("Freed %p\n", dec);
 	}
 #endif
-//	os_printf("Freed %p\n", fh);
+//	PDBG("Freed %p\n", fh);
 	os_free(fh);
 }
 

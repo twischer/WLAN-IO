@@ -93,7 +93,7 @@ HttpdBuiltInUrl builtInUrls[]={
 //
 //	if (!GPIO_INPUT_GET(BTNGPIO)) {
 //		resetCnt++;
-//		os_printf("KEY pressed!\n");
+//		PDBG("KEY pressed!\n");
 //	} else {
 //		if (resetCnt >= 30)
 //		{
@@ -138,8 +138,9 @@ static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 void user_init(void) {
 
 //	char passwd[128] ={'R','A','D','I','G','1','2','3'};
-	
+
 	stdoutInit();
+
 	
 	wifi_set_opmode(3);
 	struct softap_config apConfig;
@@ -160,5 +161,5 @@ void user_init(void) {
 
 	httpdInit(builtInUrls, 80);
 	artnet_init();
-	os_printf("\nReady\n");
+	PDBG("\nReady\n");
 }
