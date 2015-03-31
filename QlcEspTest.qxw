@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Workspace>
+<Workspace xmlns="http://qlcplus.sourceforge.net/Workspace" CurrentWindow="VirtualConsole">
+ <Creator>
+  <Name>Q Light Controller Plus</Name>
+  <Version>4.7.4</Version>
+  <Author>Timo,,,</Author>
+ </Creator>
+ <Engine>
+  <InputOutputMap>
+   <Universe Name="Universe 1" ID="0" Passthrough="0">
+    <Output Plugin="ArtNet" Line="0"/>
+   </Universe>
+   <Universe Name="Universe 2" ID="1" Passthrough="0"/>
+   <Universe Name="Universe 3" ID="2" Passthrough="0"/>
+   <Universe Name="Universe 4" ID="3" Passthrough="0"/>
+  </InputOutputMap>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>0</ID>
+   <Name>LED PAR 56 RGB DMX #1</Name>
+   <Universe>0</Universe>
+   <Address>0</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>1</ID>
+   <Name>LED PAR 56 RGB DMX #2</Name>
+   <Universe>0</Universe>
+   <Address>3</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>2</ID>
+   <Name>LED PAR 56 RGB DMX #3</Name>
+   <Universe>0</Universe>
+   <Address>6</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>3</ID>
+   <Name>LED PAR 56 RGB DMX #4</Name>
+   <Universe>0</Universe>
+   <Address>9</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>4</ID>
+   <Name>LED PAR 56 RGB DMX #5</Name>
+   <Universe>0</Universe>
+   <Address>12</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Fixture>
+   <Manufacturer>Eurolite</Manufacturer>
+   <Model>LED PAR 56 RGB DMX</Model>
+   <Mode>3 Channels</Mode>
+   <ID>5</ID>
+   <Name>LED PAR 56 RGB DMX #6</Name>
+   <Universe>0</Universe>
+   <Address>15</Address>
+   <Channels>3</Channels>
+  </Fixture>
+  <Function Type="Scene" Name="Neue Szene 0" ID="0">
+   <Speed Duration="0" FadeOut="0" FadeIn="0"/>
+   <FixtureVal ID="0">0,255,1,0,2,0</FixtureVal>
+  </Function>
+  <Function Type="Scene" Name="Neue Szene 1" ID="1">
+   <Speed Duration="0" FadeOut="0" FadeIn="0"/>
+   <FixtureVal ID="0">0,0</FixtureVal>
+  </Function>
+  <Function Type="Chaser" Name="Neue Sequenz 2" ID="2">
+   <Speed Duration="70" FadeOut="0" FadeIn="0"/>
+   <Direction>Forward</Direction>
+   <RunOrder>Loop</RunOrder>
+   <SpeedModes Duration="Common" FadeOut="Default" FadeIn="Default"/>
+   <Step Number="0" FadeOut="0" FadeIn="0" Hold="0">0</Step>
+   <Step Number="1" FadeOut="0" FadeIn="0" Hold="0">1</Step>
+  </Function>
+  <Monitor ShowLabels="0" DisplayMode="0">
+   <Font>Arial,12,-1,0,50,0,0,0,0,0</Font>
+   <ChannelStyle>0</ChannelStyle>
+   <ValueStyle>0</ValueStyle>
+  </Monitor>
+ </Engine>
+ <VirtualConsole>
+  <Frame Caption="">
+   <Appearance>
+    <FrameStyle>None</FrameStyle>
+    <ForegroundColor>Default</ForegroundColor>
+    <BackgroundColor>Default</BackgroundColor>
+    <BackgroundImage>None</BackgroundImage>
+    <Font>Default</Font>
+   </Appearance>
+   <Button Icon="" ID="0" Caption="Neue Szene 0">
+    <Function ID="0"/>
+    <Action>Flash</Action>
+    <Key>B</Key>
+    <Intensity Adjust="False">100</Intensity>
+    <WindowState Width="50" X="325" Y="300" Height="50" Visible="True"/>
+    <Appearance>
+     <FrameStyle>None</FrameStyle>
+     <ForegroundColor>Default</ForegroundColor>
+     <BackgroundColor>Default</BackgroundColor>
+     <BackgroundImage>None</BackgroundImage>
+     <Font>Default</Font>
+    </Appearance>
+   </Button>
+   <SpeedDial ID="1" Caption="Dauer">
+    <WindowState Width="245" X="0" Y="0" Height="230" Visible="True"/>
+    <Appearance>
+     <FrameStyle>None</FrameStyle>
+     <ForegroundColor>Default</ForegroundColor>
+     <BackgroundColor>Default</BackgroundColor>
+     <BackgroundImage>None</BackgroundImage>
+     <Font>Default</Font>
+    </Appearance>
+    <AbsoluteValue Minimum="0" Maximum="10000"/>
+    <Tap/>
+    <Function Duration="6" FadeOut="0" FadeIn="0">2</Function>
+   </SpeedDial>
+   <Button Icon="" ID="2" Caption="Neue Sequenz 2">
+    <Function ID="2"/>
+    <Action>Toggle</Action>
+    <Intensity Adjust="False">100</Intensity>
+    <WindowState Width="50" X="295" Y="145" Height="50" Visible="True"/>
+    <Appearance>
+     <FrameStyle>None</FrameStyle>
+     <ForegroundColor>Default</ForegroundColor>
+     <BackgroundColor>Default</BackgroundColor>
+     <BackgroundImage>None</BackgroundImage>
+     <Font>Default</Font>
+    </Appearance>
+   </Button>
+  </Frame>
+  <Properties>
+   <Size Width="1920" Height="1080"/>
+   <Keyboard TapModifier="67108864"/>
+   <GrandMaster SliderMode="Normal" ChannelMode="Intensity" ValueMode="Reduce"/>
+  </Properties>
+ </VirtualConsole>
+ <SimpleDesk>
+  <Engine/>
+ </SimpleDesk>
+</Workspace>
+
