@@ -3,6 +3,6 @@
 
 #include "httpd.h"
 
-void tplCounter(HttpdConnData *connData, char *token, void **arg);
+int tplCounter(HttpdConnData *connData, char *token, void **arg);
 
 #endif

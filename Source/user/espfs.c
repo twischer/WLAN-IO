@@ -1,3 +1,19 @@
+/*
+This is a simple read-only implementation of a file system. It uses a block of data coming from the
+mkespfsimg tool, and can use that block to do abstracted operations on the files that are in there.
+It's written for use with httpd, but doesn't need to be used as such.
+*/
+
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * Jeroen Domburg <jeroen@spritesmods.com> wrote this file. As long as you retain 
+ * this notice you can do whatever you want with this stuff. If we meet some day, 
+ * and you think this stuff is worth it, you can buy me a beer in return. 
+ * ----------------------------------------------------------------------------
+ */
+
+
 //These routines can also be tested by comping them in with the espfstest tool. This
 //simplifies debugging, but needs some slightly different headers. The #ifdef takes
 //care of that.
@@ -65,6 +81,8 @@ a memory exception, crashing the program.
 
 //Copies len bytes over from dst to src, but does it using *only*
 //aligned 32-bit reads. Yes, it's no too optimized but it's short and sweet and it works.
+
+//ToDo: perhaps os_memcpy also does unaligned accesses?
 void ICACHE_FLASH_ATTR memcpyAligned(char *dst, char *src, int len) {
 	int x;
 	int w, b;
@@ -115,6 +133,7 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 			//Yay, this is the file we need!
 			p+=h.nameLen; //Skip to content.
 			r=(EspFsFile *)os_malloc(sizeof(EspFsFile)); //Alloc file desc mem
+//			os_printf("Alloc %p\n", r);
 			if (r==NULL) return NULL;
 			r->header=(EspFsHeader *)hpos;
 			r->decompressor=h.compression;
@@ -170,6 +189,7 @@ int ICACHE_FLASH_ATTR espFsRead(EspFsFile *fh, char *buff, int len) {
 		unsigned int elen, rlen;
 		char ebuff[16];
 		heatshrink_decoder *dec=(heatshrink_decoder *)fh->decompData;
+//		os_printf("Alloc %p\n", dec);
 		while(decoded<len) {
 			//Feed data into the decompressor
 			//ToDo: Check ret val of heatshrink fns for errors
@@ -200,9 +220,12 @@ void ICACHE_FLASH_ATTR espFsClose(EspFsFile *fh) {
 	if (fh==NULL) return;
 #ifdef EFS_HEATSHRINK
 	if (fh->decompressor==COMPRESS_HEATSHRINK) {
-		heatshrink_decoder_free((heatshrink_decoder*)fh->decompData);
+		heatshrink_decoder *dec=(heatshrink_decoder *)fh->decompData;
+		heatshrink_decoder_free(dec);
+//		os_printf("Freed %p\n", dec);
 	}
 #endif
+//	os_printf("Freed %p\n", fh);
 	os_free(fh);
 }
 

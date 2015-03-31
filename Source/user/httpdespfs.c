@@ -1,3 +1,16 @@
+/*
+Connector to let httpd use the espfs filesystem to serve the files in it.
+*/
+
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * Jeroen Domburg <jeroen@spritesmods.com> wrote this file. As long as you retain 
+ * this notice you can do whatever you want with this stuff. If we meet some day, 
+ * and you think this stuff is worth it, you can buy me a beer in return. 
+ * ----------------------------------------------------------------------------
+ */
+
 #include "espmissingincludes.h"
 #include <string.h>
 #include <osapi.h>
@@ -34,6 +47,7 @@ int ICACHE_FLASH_ATTR cgiEspFsHook(HttpdConnData *connData) {
 		connData->cgiData=file;
 		httpdStartResponse(connData, 200);
 		httpdHeader(connData, "Content-Type", httpdGetMimetype(connData->url));
+		httpdHeader(connData, "Cache-Control", "max-age=3600, must-revalidate");
 		httpdEndHeaders(connData);
 		return HTTPD_CGI_MORE;
 	}
@@ -102,7 +116,7 @@ int ICACHE_FLASH_ATTR cgiEspFsTemplate(HttpdConnData *connData) {
 				//Inside ordinary text.
 				if (buff[x]=='%') {
 					//Send raw data up to now
-					if (sp!=0) espconn_sent(connData->conn, (uint8 *)e, sp);
+					if (sp!=0) httpdSend(connData, e, sp);
 					sp=0;
 					//Go collect token chars.
 					tpd->tokenPos=0;
@@ -111,8 +125,15 @@ int ICACHE_FLASH_ATTR cgiEspFsTemplate(HttpdConnData *connData) {
 				}
 			} else {
 				if (buff[x]=='%') {
-					tpd->token[tpd->tokenPos++]=0; //zero-terminate token
-					((TplCallback)(connData->cgiArg))(connData, tpd->token, &tpd->tplArg);
+					if (tpd->tokenPos==0) {
+						//This is the second % of a %% escape string.
+						//Send a single % and resume with the normal program flow.
+						httpdSend(connData, "%", 1);
+					} else {
+						//This is an actual token.
+						tpd->token[tpd->tokenPos++]=0; //zero-terminate token
+						((TplCallback)(connData->cgiArg))(connData, tpd->token, &tpd->tplArg);
+					}
 					//Go collect normal chars again.
 					e=&buff[x+1];
 					tpd->tokenPos=-1;
@@ -123,7 +144,7 @@ int ICACHE_FLASH_ATTR cgiEspFsTemplate(HttpdConnData *connData) {
 		}
 	}
 	//Send remaining bit.
-	if (sp!=0) espconn_sent(connData->conn, (uint8 *)e, sp);
+	if (sp!=0) httpdSend(connData, e, sp);
 	if (len!=1024) {
 		//We're done.
 		((TplCallback)(connData->cgiArg))(connData, NULL, &tpd->tplArg);
