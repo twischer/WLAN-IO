@@ -7,7 +7,6 @@
 
 #include "espconn.h"
 #include "httpd.h"
-#include "io.h"
 #include "espfs.h"
 
 //Max length of request head

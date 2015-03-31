@@ -6,7 +6,6 @@
 
 #include "espmissingincludes.h"
 #include "c_types.h"
-#include "io.h"
 #include "pwm.h"
 
 // ----------------------------------------------------------------------------

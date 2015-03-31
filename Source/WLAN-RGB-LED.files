@@ -19,8 +19,6 @@ user/httpd.c
 user/httpd.h
 user/httpdespfs.c
 user/httpdespfs.h
-user/io.c
-user/io.h
 user/pwm.c
 user/pwm.h
 user/stdout.c

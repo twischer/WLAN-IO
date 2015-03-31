@@ -12,20 +12,12 @@
 #include "stdout.h"
 #include "gpio.h"
 #include "artnet.h"
-#include "io.h"
-
-#define BTNGPIO 0
-
-#define at_procTaskPrio        0
-#define at_procTaskQueueLen    1
 
 #define at_dmxTaskPrio        1
 #define at_dmxTaskQueueLen    1
 
-static ETSTimer resetBtntimer;
+//static ETSTimer resetBtntimer;
 
-os_event_t    at_procTaskQueue[at_procTaskQueueLen];
-static void at_procTask(os_event_t *events);
 
 #ifdef USE_DMX_OUTPUT
 os_event_t    at_dmxTaskQueue[at_dmxTaskQueueLen];
@@ -34,11 +26,7 @@ static void at_dmxTask(os_event_t *events);
 
 HttpdBuiltInUrl builtInUrls[]={
 	{"/", cgiRedirect, "/index.tpl"},
-	{"/flash.bin", cgiReadFlash, NULL},
-	{"/led.tpl", cgiEspFsTemplate, tplLed},
-	{"/dht22.tpl", cgiEspFsTemplate, tplDHT},
 	{"/index.tpl", cgiEspFsTemplate, tplCounter},
-	{"/led.cgi", cgiLed, NULL},
 
 	//Routines to make the /wifi URL and everything beneath it work.
 	{"/wifi", cgiRedirect, "/wifi/wifi.tpl"},
@@ -51,16 +39,9 @@ HttpdBuiltInUrl builtInUrls[]={
 	{NULL, NULL, NULL}
 };
 
-static void ICACHE_FLASH_ATTR
-at_procTask(os_event_t *events)
-{
-	system_os_post(at_procTaskPrio, 0, 0 );
-}
 
-void at_recvTask() {
-}
-
-static void ICACHE_FLASH_ATTR resetBtnTimerCb(void *arg) {
+// TODO auto change back to AP+STA, if no AP
+//static void ICACHE_FLASH_ATTR resetBtnTimerCb(void *arg) {
 //	static int resetCnt=0;
 	
 //	system_os_post(at_dmxTaskPrio, 0, 0 );
@@ -76,7 +57,7 @@ static void ICACHE_FLASH_ATTR resetBtnTimerCb(void *arg) {
 //		}
 //		resetCnt=0;
 //	}
-}
+//}
 
 #ifdef USE_DMX_OUTPUT
 static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
@@ -112,7 +93,6 @@ void user_init(void) {
 //	char passwd[128] ={'R','A','D','I','G','1','2','3'};
 	
 	stdoutInit();
-	ioInit();
 	
 	wifi_set_opmode(3);
 	struct softap_config apConfig;
@@ -120,18 +100,14 @@ void user_init(void) {
 	//os_strncpy((char*)apConfig.password, passwd, 64);
 	apConfig.authmode = AUTH_OPEN;
 	wifi_softap_set_config(&apConfig);
-		
-	system_os_task(at_procTask, at_procTaskPrio, at_procTaskQueue, at_procTaskQueueLen);
 
 #ifdef USE_DMX_OUTPUT
 	system_os_task(at_dmxTask, at_dmxTaskPrio, at_dmxTaskQueue, at_dmxTaskQueueLen);
 #endif
-
-	system_os_post(at_procTaskPrio, 0, 0 );
 	
-	os_timer_disarm(&resetBtntimer);
-	os_timer_setfn(&resetBtntimer, resetBtnTimerCb, NULL);
-	os_timer_arm(&resetBtntimer, 30, 1);
+//	os_timer_disarm(&resetBtntimer);
+//	os_timer_setfn(&resetBtntimer, resetBtnTimerCb, NULL);
+//	os_timer_arm(&resetBtntimer, 30, 1);
   
 	httpdInit(builtInUrls, 80);
 	artnet_init();

@@ -4,7 +4,6 @@
 #include "mem.h"
 #include "httpd.h"
 #include "cgi.h"
-#include "io.h"
 #include "espmissingincludes.h"
 
 //WiFi access point data
