@@ -37,7 +37,7 @@ struct pwm_param {
 void pwm_init(uint16 freq, uint8 *duty);
 void pwm_start(void);
 
-void pwm_set_duty(uint8 duty, uint8 channel);
+bool pwm_set_duty(uint8 duty, uint8 channel);
 uint8 pwm_get_duty(uint8 channel);
 void pwm_set_freq(uint16 freq);
 uint16 pwm_get_freq(void);

@@ -67,6 +67,8 @@ uint8_t artnet_subNet;
 uint8_t artnet_outputUniverse1;
 uint8_t dmx_data[513];
 
+uint16 pwmStartAddr;
+
 // ----------------------------------------------------------------------------
 // packet formats
 struct artnet_packet_addr {
@@ -249,15 +251,18 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 			dmx_data[tmp+1] = data[tmp+18];
 		}
 
+		bool dataChanged = false;
+		for (uint8 i=0; i<PWM_CHANNEL; i++) {
+			const uint16 dmxAddr = pwmStartAddr + i;
+			/* pwm_start has to be called, if the values hve changed */
+			if ( pwm_set_duty(dmx_data[dmxAddr], i) ) {
+				os_printf("%d: %d\n", i, dmx_data[dmxAddr]);
+				dataChanged = true;
+			}
+		}
 
-		pwm_set_duty(dmx_data[1], 1);
-
-
-		static uint8_t old = 0;
-		if (old != dmx_data[1]) {
-			os_printf("%d\n", dmx_data[1]);
-			old = dmx_data[1];
-
+		/* only call pwm_start if the art net data has really changed */
+		if (dataChanged) {
 			pwm_start();
 		}
 	}
@@ -324,6 +329,9 @@ void artnet_init() {
 	artnet_outputUniverse1 = 1;
 	strcpy((char*)shortname,"ESP8266 NODE");
 	strcpy((char*)longname,"ESP based Art-Net Node");
+
+	/* configure the first dmx address which should be used for pwm output */
+	pwmStartAddr = 1;
 	
 	static struct espconn artnetconn;
 	static esp_udp artnetudp;

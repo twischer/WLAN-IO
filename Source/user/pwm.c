@@ -180,11 +180,14 @@ pwm_start(void)
 * Description  : set each channel's duty param
 * Parameters   : uint8 duty    : 0 ~ PWM_DEPTH
 *                uint8 channel : channel index
-* Returns      : NONE
+* Returns      : True if the data was changed and
+*				 pwm_start has to be called
 *******************************************************************************/
-void ICACHE_FLASH_ATTR
+bool ICACHE_FLASH_ATTR
 pwm_set_duty(uint8 duty, uint8 channel)
 {
+	const uint8 lastDuty = pwm.duty[channel];
+
     if (duty < 1) {
         pwm.duty[channel] = 0;
     } else if (duty >= PWM_DEPTH) {
@@ -192,6 +195,8 @@ pwm_set_duty(uint8 duty, uint8 channel)
     } else {
         pwm.duty[channel] = duty;
     }
+
+	return (lastDuty != duty);
 }
 
 /******************************************************************************
