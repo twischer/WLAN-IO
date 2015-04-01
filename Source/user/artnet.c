@@ -300,18 +300,16 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned short packetlen)
 {
 	//PDBG("Received artnet output packet!\r\n");
-	struct artnet_dmx *dmx;
-	dmx = (struct artnet_dmx *) data;
-	
-	uint16_t artnet_dmxChannels;
+	const struct artnet_dmx* const dmx = (struct artnet_dmx*)data;
 	
 	if (dmx->universe == ((artnet_subNet << 4) | artnet_outputUniverse))
 	{
 		//Daten vom Ethernetframe in den DMX Buffer kopieren
-		artnet_dmxChannels = (dmx->lengthHi << 8) | dmx->length;
+		uint16 artnet_dmxChannels = (dmx->lengthHi << 8) | dmx->length;
 		if(artnet_dmxChannels > MAX_CHANNELS) artnet_dmxChannels = MAX_CHANNELS;
 		
-		for(uint16_t tmp = 0;tmp<513;tmp++)
+		// todo max length
+		for(uint16_t tmp = 0;tmp<512;tmp++)
 		{
 			dmx_data[tmp+1] = data[tmp+18];
 		}
@@ -383,6 +381,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	}
 }
 
+
 static void artnet_loadConfig()
 {
 	parameter_t param;
@@ -393,12 +392,15 @@ static void artnet_loadConfig()
 		artnet_outputUniverse = param.universe;
 		artnet_pwmStartAddr = param.pwmStartAddr;
 	} else {
+		PDBG("No valid configuration data found. Using default.\n");
 		/* Init with default data */
 		artnet_subNet = 0;
 		artnet_outputUniverse = 1;
 		/* configure the first dmx address which should be used for pwm output */
 		artnet_pwmStartAddr = 1;
 	}
+
+	PDBG("Art Net configuration loaded: sub net %d, universe %d, pwm %d.\n", artnet_subNet, artnet_outputUniverse, artnet_pwmStartAddr);
 }
 
 
