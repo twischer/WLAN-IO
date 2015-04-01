@@ -35,16 +35,10 @@ int ICACHE_FLASH_ATTR cgiArtNetSave(HttpdConnData *connData)
 	httpdFindArg(connData->post->buff, "universe", universeStr, sizeof(universeStr));
 	httpdFindArg(connData->post->buff, "pwmaddr", pwmStartStr, sizeof(pwmStartStr));
 
-	const uint8 subNetAddr = atoi(subNetStr);
-	artnet_subNetAddr(subNetAddr);
-
-	const uint8 universeAddr = atoi(universeStr);
-	artnet_universeAddr(universeAddr);
-
-	const uint16 pwmStartAddr = atoi(pwmStartStr);
-	artnet_pwmStartAddr(pwmStartAddr);
-
-	PDBG("Art Net addresses changed to sub net %d, universe %d, pwm %d.\n", subNetAddr, universeAddr, pwmStartAddr);
+	artnet_subNet = atoi(subNetStr);
+	artnet_outputUniverse = atoi(universeStr);
+	artnet_pwmStartAddr = atoi(pwmStartStr);
+	artnet_saveConfig();
 
 	httpdRedirect(connData, "index.tpl");
 

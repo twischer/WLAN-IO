@@ -7,6 +7,8 @@
 #include "espmissingincludes.h"
 #include "c_types.h"
 #include "pwm.h"
+#include "paramconf.h"
+#include "artnet.h"
 
 // ----------------------------------------------------------------------------
 // op-codes
@@ -62,17 +64,13 @@
 
 uint8_t shortname[18];
 uint8_t longname[64];
-uint8_t net;
-uint8_t artnet_subNet;
-uint8_t artnet_outputUniverse;
+
 uint8_t dmx_data[513];
 //static uint8_t reply_transmit;
 
 static struct espconn artnetconn;
 static esp_udp artnetudp;
 
-
-uint16 pwmStartAddr;
 
 // ----------------------------------------------------------------------------
 // packet formats
@@ -209,7 +207,7 @@ void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 		msg.Port = ARTNET_PORT;
 	
 		msg.VersInfo = HTONS(0x0100);
-		msg.NetSwitch = net;
+		msg.NetSwitch = artnet_net;
 		msg.SubSwitch = artnet_subNet;
 		msg.Oem = HTONS(0x08B1);						
 		msg.Ubea_Version = 0;
@@ -320,7 +318,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 
 		bool dataChanged = false;
 		for (uint8 i=0; i<PWM_CHANNEL; i++) {
-			const uint16 dmxAddr = pwmStartAddr + i;
+			const uint16 dmxAddr = artnet_pwmStartAddr + i;
 			/* pwm_start has to be called, if the values hve changed */
 			if ( pwm_set_duty(dmx_data[dmxAddr], i) ) {
 				PDBG("%d: %d\n", i, dmx_data[dmxAddr]);
@@ -385,43 +383,55 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	}
 }
 
-
-void artnet_subNetAddr(const uint8 addr)
+static void artnet_loadConfig()
 {
-	artnet_subNet = addr;
+	parameter_t param;
+	const bool successful = paramconf_load(&param);
+
+	if (successful) {
+		artnet_subNet = param.subNet;
+		artnet_outputUniverse = param.universe;
+		artnet_pwmStartAddr = param.pwmStartAddr;
+	} else {
+		/* Init with default data */
+		artnet_subNet = 0;
+		artnet_outputUniverse = 1;
+		/* configure the first dmx address which should be used for pwm output */
+		artnet_pwmStartAddr = 1;
+	}
 }
 
 
-void artnet_universeAddr(const uint8 addr)
+void artnet_saveConfig()
 {
-	artnet_outputUniverse = addr;
-}
+	parameter_t param;
+	param.subNet = artnet_subNet;
+	param.universe = artnet_outputUniverse;
+	param.pwmStartAddr = artnet_pwmStartAddr;
 
+	paramconf_save(&param);
 
-void artnet_pwmStartAddr(const uint16 addr)
-{
-	pwmStartAddr = addr;
+	PDBG("Art Net configuration changed to sub net %d, universe %d, pwm %d.\n", artnet_subNet, artnet_outputUniverse, artnet_pwmStartAddr);
 }
 
 
 // ----------------------------------------------------------------------------
 // Art-Net init
-void artnet_init() {
-
-
+void artnet_init()
+{
 	PDBG("Art Net Init\n");
 	
-	//Init Data
-	net = 0;
-	artnet_subNet = 0;
-	artnet_outputUniverse = 1;
-//	reply_transmit = 0;
+	artnet_net = 0;
+	//reply_transmit = 0;
 	strcpy((char*)shortname,"ESP8266 NODE");
 	strcpy((char*)longname,"ESP based Art-Net Node");
 
-	/* configure the first dmx address which should be used for pwm output */
-	pwmStartAddr = 1;
-	
+	/*
+	 * load the configuration for the art net addresses or
+	 * use the default data
+	 */
+	artnet_loadConfig();
+
 	artnetconn.type = ESPCONN_UDP;
 	artnetconn.state = ESPCONN_NONE;
 	artnetconn.proto.udp = &artnetudp;
