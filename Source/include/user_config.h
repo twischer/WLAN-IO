@@ -1,8 +1,11 @@
 #ifndef _USER_CONFIG_H_
 #define _USER_CONFIG_H_
 
+#include "user_interface.h"
 #include "ets_sys.h"
 #include "uart_hw.h"
+
+#define SYS_CLK_MHZ		SYS_CPU_80MHZ
 
 
 /* enables the stdout and prints denug messages */

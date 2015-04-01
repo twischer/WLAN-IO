@@ -156,7 +156,10 @@ static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 
 
 //Main routine. Initialize stdout, the I/O and the webserver and we're done.
-void user_init(void) {
+void user_init(void)
+{
+	system_update_cpu_freq(SYS_CLK_MHZ);
+
 	stdoutInit();
 
 	wifi_set_opmode(STATIONAP_MODE);
