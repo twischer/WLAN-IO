@@ -20,6 +20,7 @@
 #include "httpdespfs.h"
 #include "cgi.h"
 #include "cgiwifi.h"
+#include "cgiartnet.h"
 #include "stdout.h"
 #include "gpio.h"
 #include "artnet.h"
@@ -79,6 +80,11 @@ HttpdBuiltInUrl builtInUrls[]={
 	{"/wifi/wifi.tpl", cgiEspFsTemplate, tplWlan},
 	{"/wifi/connect.cgi", cgiWiFiConnect, NULL},
 	{"/wifi/setmode.cgi", cgiWifiSetMode, NULL},
+
+	/* inferface for configurig art net and dmx addresses */
+	{"/artnet", cgiRedirect, "/artnet/index.tpl"},
+	{"/artnet/", cgiRedirect, "/artnet/index.tpl"},
+	{"/artnet/save.cgi", cgiArtNetSave, NULL},
 
 	{"*", cgiEspFsHook, NULL}, //Catch-all cgi function for the filesystem
 	{NULL, NULL, NULL}

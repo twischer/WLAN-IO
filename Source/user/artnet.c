@@ -64,7 +64,7 @@ uint8_t shortname[18];
 uint8_t longname[64];
 uint8_t net;
 uint8_t artnet_subNet;
-uint8_t artnet_outputUniverse1;
+uint8_t artnet_outputUniverse;
 uint8_t dmx_data[513];
 //static uint8_t reply_transmit;
 
@@ -223,7 +223,7 @@ void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 		msg.NumPorts = HTONS(1);
 		msg.PortTypes[0]=0x80;
 		
-		msg.SwOut[0] = artnet_outputUniverse1;
+		msg.SwOut[0] = artnet_outputUniverse;
 		
 		//read mac and write in pollreply packet
 		wifi_get_macaddr((uint8)STATION_IF,(uint8*) mac_addr);
@@ -307,7 +307,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 	
 	uint16_t artnet_dmxChannels;
 	
-	if (dmx->universe == ((artnet_subNet << 4) | artnet_outputUniverse1)) 
+	if (dmx->universe == ((artnet_subNet << 4) | artnet_outputUniverse))
 	{
 		//Daten vom Ethernetframe in den DMX Buffer kopieren
 		artnet_dmxChannels = (dmx->lengthHi << 8) | dmx->length;
@@ -385,6 +385,25 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	}
 }
 
+
+void artnet_subNetAddr(const uint8 addr)
+{
+	artnet_subNet = addr;
+}
+
+
+void artnet_universeAddr(const uint8 addr)
+{
+	artnet_outputUniverse = addr;
+}
+
+
+void artnet_pwmStartAddr(const uint16 addr)
+{
+	pwmStartAddr = addr;
+}
+
+
 // ----------------------------------------------------------------------------
 // Art-Net init
 void artnet_init() {
@@ -395,7 +414,7 @@ void artnet_init() {
 	//Init Data
 	net = 0;
 	artnet_subNet = 0;
-	artnet_outputUniverse1 = 1;
+	artnet_outputUniverse = 1;
 //	reply_transmit = 0;
 	strcpy((char*)shortname,"ESP8266 NODE");
 	strcpy((char*)longname,"ESP based Art-Net Node");

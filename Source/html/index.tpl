@@ -4,13 +4,13 @@
 </head>
 <body>
 <div id="main">
-<h1>Radig Hard & Software Art Net Node</h1>
+<h1>Art Net Node with PWM output</h1>
 <p>
 <ul>
 <li>Art Net Node an Router <a href="/wifi">anmelden.</a></li>
+<li><a href="/artnet">Art Net address configuration</a></li>
 </ul>
 </p>
-<br>
 <br>
 <br>
 <br>
