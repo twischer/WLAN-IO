@@ -49,7 +49,6 @@
 #define PORT_TYPE_DMX_OUTPUT	0x80
 #define PORT_TYPE_DMX_INPUT 	0x40
 
-#define MAX_CHANNELS 			512
 #define IBG   					10		// interbyte gap [us]
 
 #define REFRESH_INTERVAL		4		// [s]
@@ -65,7 +64,6 @@
 uint8_t shortname[18];
 uint8_t longname[64];
 
-uint8_t dmx_data[513];
 //static uint8_t reply_transmit;
 
 static struct espconn artnetconn;
@@ -180,9 +178,10 @@ struct artnet_dmx {
 	uint8_t sequence;
 	uint8_t physical;
 	uint8_t universe;
+	uint8_t net;
 	uint8_t lengthHi;
 	uint8_t length;
-	uint8_t dataStart;
+	uint8_t data[0];
 };
 
 
@@ -304,22 +303,37 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 	
 	if (dmx->universe == ((artnet_subNet << 4) | artnet_outputUniverse))
 	{
-		//Daten vom Ethernetframe in den DMX Buffer kopieren
-		uint16 artnet_dmxChannels = (dmx->lengthHi << 8) | dmx->length;
-		if(artnet_dmxChannels > MAX_CHANNELS) artnet_dmxChannels = MAX_CHANNELS;
-		
-		// todo max length
-		for(uint16_t tmp = 0;tmp<512;tmp++)
-		{
-			dmx_data[tmp+1] = data[tmp+18];
+		uint16 dmxChannelCount = (dmx->lengthHi << 8) | dmx->length;
+
+		/* overwrite chanel count, if bigger than package */
+		const uint16 maxChannels = packetlen - sizeof(struct artnet_dmx);
+		if(dmxChannelCount > maxChannels) {
+			PDBG("W: Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
+			dmxChannelCount = maxChannels;
 		}
+		
+#ifdef USE_DMX_OUTPUT
+		//Daten vom Ethernetframe in den DMX Buffer kopieren
+		for(uint16_t i = 0; i<dmxChannelCount; i++) {
+			dmx_data[i] = dmx->data[i];
+		}
+#endif
 
 		bool dataChanged = false;
 		for (uint8 i=0; i<PWM_CHANNEL; i++) {
-			const uint16 dmxAddr = artnet_pwmStartAddr + i;
-			/* pwm_start has to be called, if the values hve changed */
-			if ( pwm_set_duty(dmx_data[dmxAddr], i) ) {
-				PDBG("%d: %d\n", i, dmx_data[dmxAddr]);
+			const uint16 dmxIndex = artnet_pwmStartAddr + i - 1;
+
+			/*
+			 * cancel the pwm update process,
+			 * if the received art net package does not contain the needed addresses
+			 */
+//			if (dmxIndex < dmxChannelCount) {
+//				break;
+//			}
+
+			/* pwm_start has to be called, if the values have changed */
+			if ( pwm_set_duty(dmx->data[dmxIndex], i) ) {
+				PDBG("%d: %d\n", i, dmx->data[dmxIndex]);
 				dataChanged = true;
 			}
 		}

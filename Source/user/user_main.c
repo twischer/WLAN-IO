@@ -28,7 +28,7 @@
 #define at_dmxTaskPrio        USER_TASK_PRIO_0
 #define at_dmxTaskQueueLen    1
 
-//static ETSTimer wifiModeTimer;
+static ETSTimer wifiModeTimer;
 
 
 #ifdef USE_DMX_OUTPUT
@@ -92,23 +92,23 @@ HttpdBuiltInUrl builtInUrls[]={
 };
 
 
-//static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
-//	const uint8 status = wifi_station_get_connect_status();
-//	const uint8 opmode = wifi_get_opmode();
+static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
+	const uint8 status = wifi_station_get_connect_status();
+	const uint8 opmode = wifi_get_opmode();
 
-//	if (status == STATION_GOT_IP) {
-//		if (opmode == STATIONAP_MODE) {
-//			PDBG("Successful connected to station. Disable AP mode.\n");
-//			wifi_set_opmode(STATION_MODE);
-//		}
+	if (status == STATION_GOT_IP) {
+		if (opmode == STATIONAP_MODE) {
+			PDBG("Successful connected to station. Disable AP mode.\n");
+			wifi_set_opmode(STATION_MODE);
+		}
 
-//	} else {
-//		if (opmode != STATIONAP_MODE) {
-//			PDBG("Station lost. Activating AP+STA mode.\n");
-//			wifi_set_opmode(STATIONAP_MODE);
-//		}
-//	}
-//}
+	} else {
+		if (opmode != STATIONAP_MODE) {
+			PDBG("Station lost. Activating AP+STA mode.\n");
+			wifi_set_opmode(STATIONAP_MODE);
+		}
+	}
+}
 
 
 #ifdef USE_DMX_OUTPUT
@@ -138,13 +138,13 @@ static void ICACHE_FLASH_ATTR at_dmxTask(os_event_t *event)
 	gpio_output_set(DMX_IO_BIT, 0, DMX_IO_BIT, 0);
 	os_delay_us(54);
 	
-	//START CODE + DMX DATA
-	uart_tx_one_char(DMX_UART, dmx_data[0]);
+	// NULL START CODE
+	uart_tx_one_char(DMX_UART, 0x00);
 	PIN_FUNC_SELECT(DMX_IO_MUX, DMX_IO_TXD);
 	os_delay_us(54);
 	
 	//DMX data
-	for (uint16 i = 1; i < 513; i++)
+	for (uint16 i = 0; i < sizeof(dmx_data); i++)
 	{
 		uart_tx_one_char(DMX_UART, dmx_data[i]);
 		os_delay_us(54);
@@ -171,9 +171,9 @@ void user_init(void) {
 	initDmxOut();
 #endif
 
-//	os_timer_disarm(&wifiModeTimer);
-//	os_timer_setfn(&wifiModeTimer, wifiModeTimerCb, NULL);
-//	os_timer_arm(&wifiModeTimer, 5000, 1);
+	os_timer_disarm(&wifiModeTimer);
+	os_timer_setfn(&wifiModeTimer, wifiModeTimerCb, NULL);
+	os_timer_arm(&wifiModeTimer, 5000, 1);
 
 	httpdInit(builtInUrls, 80);
 	artnet_init();

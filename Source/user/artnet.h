@@ -2,9 +2,13 @@
 #define CONFIG_H_
 
 #include <c_types.h>
+#include "user_config.h"
 
-uint8_t dmx_data[513];
-//static uint8_t reply_transmit;
+#define MAX_CHANNELS 			512
+
+#ifdef USE_DMX_OUTPUT
+uint8_t dmx_data[MAX_CHANNELS];
+#endif
 
 uint8 artnet_net;
 uint8 artnet_subNet;
