@@ -21,6 +21,26 @@ Cgi/template routines for the /artnet url.
 #include "cgiartnet.h"
 
 
+int ICACHE_FLASH_ATTR cgiArtNet_Template(HttpdConnData *connData, char *token, void **arg)
+{
+	if (token==NULL)
+		return HTTPD_CGI_DONE;
+
+	char buff[10] = "Unknown";
+	if (os_strcmp(token, "SUBNET") == 0) {
+		os_sprintf(buff, "%d", artnet_subNet);
+	} else if (os_strcmp(token, "UNIVERSE") == 0) {
+		os_sprintf(buff, "%d", artnet_outputUniverse);
+	} else if (os_strcmp(token, "PWMADDR") == 0) {
+		os_sprintf(buff, "%d", artnet_pwmStartAddr);
+	}
+
+	httpdSend(connData, buff, -1);
+
+	return HTTPD_CGI_DONE;
+}
+
+
 int ICACHE_FLASH_ATTR cgiArtNetSave(HttpdConnData *connData)
 {
 	if (connData->conn==NULL) {

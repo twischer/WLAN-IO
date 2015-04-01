@@ -28,7 +28,7 @@
 #define at_dmxTaskPrio        USER_TASK_PRIO_0
 #define at_dmxTaskQueueLen    1
 
-static ETSTimer wifiModeTimer;
+//static ETSTimer wifiModeTimer;
 
 
 #ifdef USE_DMX_OUTPUT
@@ -84,6 +84,7 @@ HttpdBuiltInUrl builtInUrls[]={
 	/* inferface for configurig art net and dmx addresses */
 	{"/artnet", cgiRedirect, "/artnet/index.tpl"},
 	{"/artnet/", cgiRedirect, "/artnet/index.tpl"},
+	{"/artnet/index.tpl", cgiEspFsTemplate, cgiArtNet_Template},
 	{"/artnet/save.cgi", cgiArtNetSave, NULL},
 
 	{"*", cgiEspFsHook, NULL}, //Catch-all cgi function for the filesystem
@@ -91,23 +92,23 @@ HttpdBuiltInUrl builtInUrls[]={
 };
 
 
-static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
-	const uint8 status = wifi_station_get_connect_status();
-	const uint8 opmode = wifi_get_opmode();
+//static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
+//	const uint8 status = wifi_station_get_connect_status();
+//	const uint8 opmode = wifi_get_opmode();
 
-	if (status == STATION_GOT_IP) {
-		if (opmode == STATIONAP_MODE) {
-			PDBG("Successful connected to station. Disable AP mode.\n");
-			wifi_set_opmode(STATION_MODE);
-		}
+//	if (status == STATION_GOT_IP) {
+//		if (opmode == STATIONAP_MODE) {
+//			PDBG("Successful connected to station. Disable AP mode.\n");
+//			wifi_set_opmode(STATION_MODE);
+//		}
 
-	} else {
-		if (opmode != STATIONAP_MODE) {
-			PDBG("Station lost. Activating AP+STA mode.\n");
-			wifi_set_opmode(STATIONAP_MODE);
-		}
-	}
-}
+//	} else {
+//		if (opmode != STATIONAP_MODE) {
+//			PDBG("Station lost. Activating AP+STA mode.\n");
+//			wifi_set_opmode(STATIONAP_MODE);
+//		}
+//	}
+//}
 
 
 #ifdef USE_DMX_OUTPUT
@@ -170,9 +171,9 @@ void user_init(void) {
 	initDmxOut();
 #endif
 
-	os_timer_disarm(&wifiModeTimer);
-	os_timer_setfn(&wifiModeTimer, wifiModeTimerCb, NULL);
-	os_timer_arm(&wifiModeTimer, 5000, 1);
+//	os_timer_disarm(&wifiModeTimer);
+//	os_timer_setfn(&wifiModeTimer, wifiModeTimerCb, NULL);
+//	os_timer_arm(&wifiModeTimer, 5000, 1);
 
 	httpdInit(builtInUrls, 80);
 	artnet_init();

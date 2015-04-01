@@ -1,5 +1,6 @@
 #include "osapi.h"
 #include "user_interface.h"
+#include "espmissingincludes.h"
 #include "paramconf.h"
 
 #define ESP_PARAM_START_SEC		0x3D
@@ -18,6 +19,8 @@ paramconf_load(parameter_t* const param)
 void ICACHE_FLASH_ATTR
 paramconf_save(parameter_t* const param)
 {
+	PDBG("WRITE %d\n", param->universe);
+
 	param->magic = MAGIC_NUMBER;
 
 	spi_flash_erase_sector(ESP_PARAM_START_SEC);

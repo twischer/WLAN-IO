@@ -142,7 +142,7 @@ flash: $(FW_FILE_1) $(FW_FILE_2)
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x00000 firmware/0x00000.bin
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x40000 firmware/0x40000.bin
 
-webpages.espfs: html/ html/wifi/ mkespfsimage/mkespfsimage
+webpages.espfs: html/ html/wifi/ html/artnet mkespfsimage/mkespfsimage
 	cd html; find . | ../mkespfsimage/mkespfsimage > ../webpages.espfs; cd ..
 
 mkespfsimage/mkespfsimage: mkespfsimage/
