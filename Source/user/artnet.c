@@ -319,19 +319,20 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		}
 #endif
 
+		/*
+		 * calulate the count of available channels
+		 * in the received package
+		 * which should be used for the pwm output
+		 */
+		sint16 availablePwmChannels = dmxChannelCount - artnet_pwmStartAddr + 1;
+		if (availablePwmChannels > PWM_CHANNEL) {
+			availablePwmChannels = PWM_CHANNEL;
+		}
+
 		bool dataChanged = false;
-		for (uint8 i=0; i<PWM_CHANNEL; i++) {
-			const uint16 dmxIndex = artnet_pwmStartAddr + i - 1;
-
-			/*
-			 * cancel the pwm update process,
-			 * if the received art net package does not contain the needed addresses
-			 */
-//			if (dmxIndex < dmxChannelCount) {
-//				break;
-//			}
-
+		for (uint8 i=0; i<availablePwmChannels; i++) {
 			/* pwm_start has to be called, if the values have changed */
+			const uint16 dmxIndex = artnet_pwmStartAddr - 1 + i;
 			if ( pwm_set_duty(dmx->data[dmxIndex], i) ) {
 				PDBG("%d: %d\n", i, dmx->data[dmxIndex]);
 				dataChanged = true;
