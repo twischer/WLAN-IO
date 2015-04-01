@@ -16,12 +16,14 @@
  */
 //#define USE_DMX_OUTPUT
 
+#ifdef USE_DMX_OUTPUT
 #define DMX_IO_MUX		PERIPHS_IO_MUX_U0TXD_U
 #define DMX_IO_GPIO		FUNC_GPIO1
 #define DMX_IO_TXD		FUNC_U0TXD
 #define DMX_IO_NUM		1
 #define DMX_IO_BIT		BIT1
 #define DMX_UART		UART0
+#endif
 
 
 #ifdef DEBUG
