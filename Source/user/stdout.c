@@ -68,5 +68,6 @@ void stdoutInit() {
 
 #else
 	os_install_putc1((void *)nullPutchar);
+	system_set_os_print(false);
 #endif
 }
