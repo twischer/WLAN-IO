@@ -100,12 +100,14 @@ static void ICACHE_FLASH_ATTR wifiModeTimerCb(void *arg) {
 		if (opmode == STATIONAP_MODE) {
 			PDBG("Successful connected to station. Disable AP mode.\n");
 			wifi_set_opmode(STATION_MODE);
+			wifi_softap_dhcps_stop();
 		}
 
 	} else {
 		if (opmode != STATIONAP_MODE) {
 			PDBG("Station lost. Activating AP+STA mode.\n");
 			wifi_set_opmode(STATIONAP_MODE);
+			wifi_softap_dhcps_start();
 		}
 	}
 }
