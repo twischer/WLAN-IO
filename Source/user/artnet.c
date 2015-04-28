@@ -458,6 +458,6 @@ void artnet_init()
 	espconn_regist_recvcb(&artnetconn, artnet_get);
 	espconn_create(&artnetconn);
 
-	uint8_t duty[] = {64, 64, 64};
+	uint8_t duty[] = {0, 0, 0};
 	pwm_init(100, duty);
 }
