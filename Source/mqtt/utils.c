@@ -88,7 +88,7 @@ uint8_t ICACHE_FLASH_ATTR UTILS_IsIPV4 (int8_t *str)
 
     return 1;
 }
-uint8_t ICACHE_FLASH_ATTR UTILS_StrToIP(const int8_t* str, void *ip)
+uint8_t ICACHE_FLASH_ATTR UTILS_StrToIP(const char* str, void *ip)
 {
 
 	    /* The count of the number of bytes processed. */

@@ -8,6 +8,8 @@
 #ifndef USER_DEBUG_H_
 #define USER_DEBUG_H_
 
+#include "espmissingincludes.h"
+
 #ifndef INFO
 #define INFO os_printf
 #endif

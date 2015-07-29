@@ -33,6 +33,7 @@
 #include "osapi.h"
 #include "os_type.h"
 #include "mem.h"
+#include "espmissingincludes.h"
 #include "proto.h"
 void ICACHE_FLASH_ATTR QUEUE_Init(QUEUE *queue, int bufferSize)
 {
