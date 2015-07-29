@@ -1,4 +1,6 @@
 include
 include/driver
+lib/heatshrink
+mqtt/include
 user
 /opt/esp-open-sdk/sdk/include
