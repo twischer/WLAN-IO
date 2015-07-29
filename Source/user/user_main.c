@@ -1,12 +1,19 @@
 /*
- * ----------------------------------------------------------------------------
- * "THE BEER-WARE LICENSE" (Revision 42):
- * Jeroen Domburg <jeroen@spritesmods.com> wrote this file. As long as you retain 
- * this notice you can do whatever you want with this stuff. If we meet some day, 
- * and you think this stuff is worth it, you can buy me a beer in return. 
- * ----------------------------------------------------------------------------
+ *   Copyright 2015, Timo Wischer <twischer@freenet.de>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include "mem.h"
 #include "c_types.h"
 #include "user_interface.h"
@@ -183,4 +190,7 @@ void user_init(void)
 	httpdInit(builtInUrls, 80);
 	artnet_init();
 	PDBG("\nReady\n");
+
+//	system_deep_sleep_set_option(2);
+//	system_deep_sleep(2000*1000);
 }
