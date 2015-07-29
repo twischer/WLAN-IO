@@ -1,0 +1,244 @@
+SDK v1.0.0
+160MHz
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestopt
+mit closed lwip
+
+Art Net Init
+Art Net configuration loaded: sub net 0, universe 1, pwm 1.
+
+Ready
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+0: 0
+W: 00: interval: 19469µs (max: 2146.035ms), exec: 11µs (max: 58µs), free heap: 28384 Byte     
+W: 02: interval: 8437µs (max: 616.304ms), exec: 2µs (max: 17µs), free heap: 28384 Byte     
+W: 03: interval: 19997µs (max: 616.044ms), exec: 1µs (max: 19µs), free heap: 28384 Byte     
+W: 06: interval: 14051µs (max: 617.223ms), exec: 9µs (max: 21µs), free heap: 28384 Byte     
+W: 07: interval: 29701µs (max: 615.447ms), exec: 2µs (max: 22µs), free heap: 28384 Byte     
+W: 08: interval: 20924µs (max: 618.927ms), exec: 2µs (max: 20µs), free heap: 28384 Byte     
+W: 09: interval: 21681µs (max: 610.830ms), exec: 2µs (max: 22µs), free heap: 28384 Byte     
+W: 11: interval: 21436µs (max: 625.327ms), exec: 4µs (max: 22µs), free heap: 28384 Byte     
+W: 22: interval: 18751µs (max: 609.164ms), exec: 2µs (max: 22µs), free heap: 28384 Byte     
+W: 24: interval: 3396µs (max: 618.232ms), exec: 1µs (max: 19µs), free heap: 28384 Byte     
+W: 28: interval: 19762µs (max: 622.719ms), exec: 2µs (max: 21µs), free heap: 28384 Byte     
+W: 29: interval: 6526µs (max: 616.264ms), exec: 2µs (max: 22µs), free heap: 28384 Byte     
+W: 30: interval: 22713µs (max: 608.653ms), exec: 12µs (max: 22µs), free heap: 28384 Byte     
+W: 31: interval: 20018µs (max: 615.580ms), exec: 1µs (max: 22µs), free heap: 28384 Byte     
+32: interval: 13291µs (max: 51.334ms), exec: 2µs (max: 13µs), free heap: 28384 Byte
+
+###############################################################################################################################
+
+SDK v0.9.5
+80MHz
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestopt
+mit closed lwip
+
+Art Net Init
+Art Net configuration loaded: sub net 0, universe 1, pwm 1.
+
+Ready
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+0: 0
+W: 00: interval: 16627µs (max: 3127.163ms), exec: 3µs (max: 94µs), free heap: 31888 Byte     
+W: 01: interval: 20635µs (max: 620.902ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 03: interval: 20001µs (max: 625.233ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 04: interval: 18133µs (max: 622.945ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 05: interval: 22134µs (max: 606.205ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 06: interval: 17475µs (max: 616.780ms), exec: 3µs (max: 20µs), free heap: 31888 Byte     
+W: 07: interval: 12369µs (max: 609.099ms), exec: 4µs (max: 20µs), free heap: 31888 Byte     
+W: 08: interval: 3312µs (max: 612.594ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 09: interval: 20289µs (max: 632.932ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 10: interval: 17487µs (max: 622.349ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 12: interval: 19161µs (max: 616.953ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 13: interval: 10826µs (max: 614.457ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 15: interval: 13885µs (max: 611.944ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 17: interval: 6971µs (max: 620.240ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 18: interval: 43800µs (max: 612.344ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 19: interval: 6953µs (max: 614.612ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 20: interval: 19992µs (max: 625.333ms), exec: 4µs (max: 19µs), free heap: 31888 Byte     
+W: 22: interval: 10041µs (max: 621.902ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 23: interval: 18826µs (max: 608.855ms), exec: 3µs (max: 19µs), free heap: 31888 Byte     
+W: 25: interval: 18561µs (max: 610.187ms), exec: 4µs (max: 17µs), free heap: 31888 Byte     
+W: 26: interval: 22341µs (max: 618.942ms), exec: 4µs (max: 19µs), free heap: 31888 Byte
+
+
+###############################################################################################################################
+
+SDK v0.9.5
+80MHz
+ohne artnet init
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestartet
+mit open lwip + ip_input_ext
+
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+W: 00: interval: 21986µs (max: 888.110ms), exec: 0µs (max: 0µs), free heap: 31864 Byte     
+W: 09: interval: 14785µs (max: 607.671ms), exec: 0µs (max: 0µs), free heap: 31864 Byte     
+W: 12: interval: 21964µs (max: 619.371ms), exec: 0µs (max: 0µs), free heap: 31864 Byte     
+W: 14: interval: 16996µs (max: 606.172ms), exec: 0µs (max: 0µs), free heap: 31864 Byte     
+36: interval: 17513µs (max: 60.911ms), exec: 0µs (max: 0µs), free heap: 31864 Byte
+
+###############################################################################################################################
+
+SDK v1.0.0
+80MHz
+ohne artnet init
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestartet
+mit closed lwip
+
+Art Net Init
+Art Net configuration loaded: sub net 0, universe 1, pwm 1.
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+W: 00: interval: 4328µs (max: 536.459ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 01: interval: 18619µs (max: 625.273ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 06: interval: 23846µs (max: 616.904ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 07: interval: 20413µs (max: 630.709ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 08: interval: 16413µs (max: 642.379ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 10: interval: 13031µs (max: 617.889ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 11: interval: 1290µs (max: 611.613ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 12: interval: 6562µs (max: 647.630ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 13: interval: 22888µs (max: 616.679ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 15: interval: 13961µs (max: 616.704ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 18: interval: 25648µs (max: 608.913ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 19: interval: 9277µs (max: 606.106ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 23: interval: 12229µs (max: 619.663ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+W: 26: interval: 12062µs (max: 611.926ms), exec: 0µs (max: 0µs), free heap: 28400 Byte     
+27: interval: 22659µs (max: 130.528ms), exec: 0µs (max: 0µs), free heap: 28400 Byte
+
+
+###############################################################################################################################
+
+SDK v9.5.0
+80MHz
+ohne artnet init
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestartet
+mit closed lwip
+
+
+Art Net Init
+Art Net configuration loaded: sub net 0, universe 1, pwm 1.
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+W: 00: interval: 17087µs (max: 389.875ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 07: interval: 19011µs (max: 638.519ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 08: interval: 18165µs (max: 614.719ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 09: interval: 5760µs (max: 613.878ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 11: interval: 21800µs (max: 609.332ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 13: interval: 23017µs (max: 622.658ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 14: interval: 6286µs (max: 632.140ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 16: interval: 24218µs (max: 637.037ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 23: interval: 21277µs (max: 608.873ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 24: interval: 23111µs (max: 606.789ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 26: interval: 4104µs (max: 624.989ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 27: interval: 1925µs (max: 616.214ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 28: interval: 16680µs (max: 601.319ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 29: interval: 16549µs (max: 613.080ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 30: interval: 19929µs (max: 606.411ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 38: interval: 22392µs (max: 613.042ms), exec: 0µs (max: 0µs), free heap: 31904 Byte     
+W: 39: interval: 15335µs (max: 623.907ms), exec: 0µs (max: 0µs), free heap: 31904 Byte
+
+
+###############################################################################################################################
+
+SDK v9.5.0
+80MHz
+ohne artnet init
+ohne httpdInit
+ohne wifi_softap_set_config
+dhcp server gestartet
+mit open lwip
+
+
+
+Art Net Init
+Art Net configuration loaded: sub net 0, universe 1, pwm 1.
+mode : sta(18:fe:34:9e:68:ec)
+add if0
+scandone
+add 0
+aid 1
+pm open phy_2,type:2 0 0
+
+connected with Tomahawk, channel 1
+dhcp client start...
+cnt 
+ip:10.42.0.95,mask:255.255.255.0,gw:10.42.0.1
+W: 00: interval: 17132µs (max: 418.709ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 01: interval: 20527µs (max: 616.121ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 02: interval: 35180µs (max: 635.145ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 06: interval: 4208µs (max: 744.019ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 07: interval: 29124µs (max: 635.993ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 08: interval: 19935µs (max: 607.270ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 09: interval: 19530µs (max: 612.359ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 10: interval: 34699µs (max: 618.394ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 12: interval: 20058µs (max: 635.569ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 13: interval: 26799µs (max: 625.129ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 14: interval: 14682µs (max: 622.595ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 15: interval: 15955µs (max: 631.101ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 17: interval: 19227µs (max: 638.321ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 18: interval: 20052µs (max: 639.078ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 19: interval: 23537µs (max: 612.466ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 20: interval: 15238µs (max: 623.813ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 21: interval: 14998µs (max: 608.985ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 22: interval: 21781µs (max: 635.503ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 23: interval: 19804µs (max: 620.860ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 24: interval: 13779µs (max: 626.261ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 30: interval: 25665µs (max: 635.541ms), exec: 0µs (max: 0µs), free heap: 31712 Byte     
+W: 37: interval: 30495µs (max: 629.511ms), exec: 0µs (max: 0µs), free heap: 31712 Byte
