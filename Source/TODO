@@ -1,0 +1,3 @@
+os_delay in stdout einfügen, um bussy waiting zu verkleinern
+
+add void system_restore(void); to webinterface

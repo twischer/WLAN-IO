@@ -1,0 +1,4 @@
+include
+include/driver
+user
+/opt/esp-open-sdk/sdk/include

@@ -33,6 +33,39 @@
 // If defined, the default hostname for DHCP will include the chip ID to make it unique
 #undef CHIP_IN_HOSTNAME
 
+#define SYS_CLK_MHZ		SYS_CPU_80MHZ
+
+
+/* enables the stdout and prints denug messages */
+#define DEBUG
+
+/*
+ * Enables the dmx output.
+ * Do not activating debug and dmx output,
+ * if dmx output is configured to use the same uart port
+ * as the debug output.
+ */
+//#define USE_DMX_OUTPUT
+
+#ifdef USE_DMX_OUTPUT
+#define DMX_IO_MUX		PERIPHS_IO_MUX_U0TXD_U
+#define DMX_IO_GPIO		FUNC_GPIO1
+#define DMX_IO_TXD		FUNC_U0TXD
+#define DMX_IO_NUM		1
+#define DMX_IO_BIT		BIT1
+#define DMX_UART		UART0
+#endif
+
+
+#ifdef DEBUG
+#define PDBG	os_printf
+#else
+#define PDBG	nullPrint
+#endif
+
+inline void nullPrint(const char *format, ...) {}
+
+
 extern char* esp_link_version;
 extern uint8_t UTILS_StrToIP(const char* str, void *ip);
 
