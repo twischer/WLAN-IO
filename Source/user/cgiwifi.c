@@ -191,11 +191,26 @@ int ICACHE_FLASH_ATTR cgiWiFiConnect(HttpdConnData *connData) {
 
 	os_strncpy((char*)stconf.ssid, essid, 32);
 	os_strncpy((char*)stconf.password, passwd, 64);
+	
 	os_printf("Try to connect to AP %s pw %s\n", essid, passwd);
+
+	struct softap_config apConfig;
+	wifi_softap_get_config(&apConfig);
+	os_strncpy((char*)apConfig.password, passwd, 64);
+
+	wifi_station_dhcpc_start();
+	wifi_station_set_auto_connect(1);
+	
+    wifi_station_set_config(&stconf);
+	wifi_softap_set_config(&apConfig);
+	
+	system_restart();
 
 	//Schedule disconnect/connect
 	os_timer_disarm(&reassTimer);
 	os_timer_setfn(&reassTimer, reassTimerCb, NULL);
+	
+	
 //Set to 0 if you want to disable the actual reconnecting bit
 #ifdef DEMO_MODE
 	httpdRedirect(connData, "/wifi");
