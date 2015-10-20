@@ -42,7 +42,7 @@ ESP_HOSTNAME        ?= esp-link
 # --------------- chipset configuration   ---------------
 
 # Pick your flash size: "512KB", "1MB", or "4MB"
-FLASH_SIZE ?= 512MB
+FLASH_SIZE ?= 512KB
 
 # The pin assignments below are used when the settings in flash are invalid, they
 # can be changed via the web interface
@@ -63,7 +63,7 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
-#MODULES ?= mqtt rest
+#MODULES ?= mqtt
 
 # --------------- esphttpd config options ---------------
 
@@ -178,13 +178,10 @@ ifneq (,$(findstring mqtt,$(MODULES)))
 	CFLAGS		+= -DMQTT
 endif
 
-ifneq (,$(findstring rest,$(MODULES)))
-	CFLAGS		+= -DREST
-endif
 
 # which modules (subdirectories) of the project to include in compiling
 LIBRARIES_DIR 	= libraries
-MODULES		  	+= espfs httpd user serial cmd esp-link
+MODULES		  	+= espfs httpd user serial esp-link
 MODULES			+= $(foreach sdir,$(LIBRARIES_DIR),$(wildcard $(sdir)/*))
 EXTRA_INCDIR 	= include .
 

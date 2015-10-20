@@ -15,17 +15,11 @@
 #include "httpdespfs.h"
 #include "cgi.h"
 #include "cgiwifi.h"
-#include "cgipins.h"
-#include "cgitcp.h"
 #include "cgimqtt.h"
 #include "cgiflash.h"
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"
-#include "serbridge.h"
-#include "status.h"
-#include "serled.h"
-#include "console.h"
 #include "config.h"
 #include "log.h"
 #include <gpio.h>
@@ -48,9 +42,6 @@ HttpdBuiltInUrl builtInUrls[] = {
   { "/flash/reboot", cgiRebootFirmware, NULL },
   { "/log/text", ajaxLog, NULL },
   { "/log/dbg", ajaxLogDbg, NULL },
-  { "/console/reset", ajaxConsoleReset, NULL },
-  { "/console/baud", ajaxConsoleBaud, NULL },
-  { "/console/text", ajaxConsole, NULL },
   //Enable the line below to protect the WiFi configuration with an username/password combo.
   //    {"/wifi/*", authBasic, myPassFn},
   { "/wifi", cgiRedirect, "/wifi/wifi.html" },
@@ -61,8 +52,6 @@ HttpdBuiltInUrl builtInUrls[] = {
   { "/wifi/connstatus", cgiWiFiConnStatus, NULL },
   { "/wifi/setmode", cgiWiFiSetMode, NULL },
   { "/wifi/special", cgiWiFiSpecial, NULL },
-  { "/pins", cgiPins, NULL },
-  { "/tcpclient", cgiTcp, NULL },
 #ifdef MQTT
   { "/mqtt", cgiMqtt, NULL },
 #endif
@@ -140,9 +129,6 @@ void user_init(void) {
   }
 #endif
 
-  // Status LEDs
-  statusInit();
-  serledInit();
   // Wifi
   wifiInit();
 
@@ -152,9 +138,6 @@ void user_init(void) {
   //os_printf("espFsInit %s\n", res?"ERR":"ok");
   // mount the http handlers
   httpdInit(builtInUrls, 80);
-  // init the wifi-serial transparent bridge (port 23)
-  serbridgeInit(23, 2323);
-  uart_add_recv_cb(&serbridgeUartCb);
 #ifdef SHOW_HEAP_USE
   os_timer_disarm(&prHeapTimer);
   os_timer_setfn(&prHeapTimer, prHeapTimerCb, NULL);

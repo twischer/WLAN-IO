@@ -17,7 +17,6 @@ Cgi/template routines for the /wifi url.
 #include <esp8266.h>
 #include "cgiwifi.h"
 #include "cgi.h"
-#include "status.h"
 #include "config.h"
 #include "log.h"
 
@@ -59,8 +58,7 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
     os_printf("Wifi connected to ssid %s, ch %d\n", evt->event_info.connected.ssid,
         evt->event_info.connected.channel);
 #endif
-    statusWifiUpdate(wifiState);
-    break;
+	break;
   case EVENT_STAMODE_DISCONNECTED:
     wifiState = wifiIsDisconnected;
     wifiReason = evt->event_info.disconnected.reason;
@@ -68,8 +66,7 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
     os_printf("Wifi disconnected from ssid %s, reason %s (%d)\n",
         evt->event_info.disconnected.ssid, wifiGetReason(), evt->event_info.disconnected.reason);
 #endif
-    statusWifiUpdate(wifiState);
-    break;
+	break;
   case EVENT_STAMODE_AUTHMODE_CHANGE:
 #ifdef CGIWIFI_DBG
     os_printf("Wifi auth mode: %d -> %d\n",
@@ -84,8 +81,7 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
         IP2STR(&evt->event_info.got_ip.ip), IP2STR(&evt->event_info.got_ip.mask),
         IP2STR(&evt->event_info.got_ip.gw));
 #endif
-    statusWifiUpdate(wifiState);
-    break;
+	break;
   case EVENT_SOFTAPMODE_STACONNECTED:
 #ifdef CGIWIFI_DBG
     os_printf("Wifi AP: station " MACSTR " joined, AID = %d\n",
