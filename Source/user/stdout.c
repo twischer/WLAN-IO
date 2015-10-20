@@ -14,8 +14,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "espmissingincludes.h"
-#include "osapi.h"
+#include <esp8266.h>
 #include "stdout.h"
 
 

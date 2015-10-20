@@ -42,7 +42,7 @@ ESP_HOSTNAME        ?= esp-link
 # --------------- chipset configuration   ---------------
 
 # Pick your flash size: "512KB", "1MB", or "4MB"
-FLASH_SIZE ?= 4MB
+FLASH_SIZE ?= 512MB
 
 # The pin assignments below are used when the settings in flash are invalid, they
 # can be changed via the web interface
@@ -63,7 +63,7 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
-MODULES ?= mqtt rest
+#MODULES ?= mqtt rest
 
 # --------------- esphttpd config options ---------------
 
