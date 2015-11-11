@@ -71,14 +71,5 @@
 <script type="text/javascript">
 </script>
 <script src="wifi.js"></script>
-<script type="text/javascript">
-onLoad(function() {
-  getWifiInfo();
-  bnd($("#wifiform"), "submit", changeWifiAp);
-  bnd($("#specform"), "submit", changeSpecial);
-  bnd($("#dhcp-ron"), "click", doDhcp);
-  bnd($("#dhcp-roff"), "click", doStatic);
-  scanTimeout = window.setTimeout(scanAPs, 500);
-});
-</script>
+<script type="text/javascript">onLoad(function(){getWifiInfo();bnd($("#wifiform"),"submit",changeWifiAp);bnd($("#specform"),"submit",changeSpecial);bnd($("#dhcp-ron"),"click",doDhcp);bnd($("#dhcp-roff"),"click",doStatic);scanTimeout=window.setTimeout(scanAPs,500);});</script>
 </body></html>
