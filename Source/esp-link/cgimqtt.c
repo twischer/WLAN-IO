@@ -3,7 +3,6 @@
 #include <esp8266.h>
 #include "cgi.h"
 #include "config.h"
-#include "status.h"
 #include "mqtt_client.h"
 #include "cgimqtt.h"
 
@@ -21,7 +20,7 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
   // get the current status topic for display
   char status_buf1[128], *sb1=status_buf1;
   char status_buf2[128], *sb2=status_buf2;
-  mqttStatusMsg(status_buf1);
+
   // quote all " for the json, sigh...
   for (int i=0; i<127 && *sb1; i++) {
     if (*sb1 == '"') {
@@ -81,11 +80,11 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
 
   if (mqtt_server < 0) return HTTPD_CGI_DONE;
   mqtt_server |= getBoolArg(connData, "mqtt-clean-session",
-      &flashConfig.mqtt_clean_session);
+	  (bool*)&flashConfig.mqtt_clean_session);
 
   if (mqtt_server < 0) return HTTPD_CGI_DONE;
   int8_t mqtt_en_chg = getBoolArg(connData, "mqtt-enable",
-      &flashConfig.mqtt_enable);
+	  (bool*)&flashConfig.mqtt_enable);
 
   char buff[16];
 
@@ -134,14 +133,14 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
 
   // no action required if mqtt status settings change, they just get picked up at the
   // next status tick
-  if (getBoolArg(connData, "mqtt-status-enable", &flashConfig.mqtt_status_enable) < 0)
+  if (getBoolArg(connData, "mqtt-status-enable", (bool*)&flashConfig.mqtt_status_enable) < 0)
     return HTTPD_CGI_DONE;
   if (getStringArg(connData, "mqtt-status-topic",
         flashConfig.mqtt_status_topic, sizeof(flashConfig.mqtt_status_topic)) < 0)
     return HTTPD_CGI_DONE;
 
   // if SLIP-enable is toggled it gets picked-up immediately by the parser
-  int slip_update = getBoolArg(connData, "slip-enable", &flashConfig.slip_enable);
+  int slip_update = getBoolArg(connData, "slip-enable", (bool*)&flashConfig.slip_enable);
   if (slip_update < 0) return HTTPD_CGI_DONE;
 #ifdef CGIMQTT_DBG
   if (slip_update > 0) os_printf("SLIP-enable changed: %d\n", flashConfig.slip_enable);
