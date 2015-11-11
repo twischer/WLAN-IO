@@ -6,29 +6,29 @@
 #endif
 
 #undef SHOW_HEAP_USE
-#define DEBUGIP
-#define SDK_DBG
+//#define DEBUGIP
+//#define SDK_DBG
 
-#define CMD_DBG
+//#define CMD_DBG
 #undef ESPFS_DBG
 #undef CGI_DBG
-#define CGIFLASH_DBG
-#define CGIMQTT_DBG
-#define CGIPINS_DBG
-#define CGIWIFI_DBG
-#define CONFIG_DBG
-#define LOG_DBG
-#define STATUS_DBG
-#define HTTPD_DBG
-#define MQTT_DBG
-#define MQTTCMD_DBG
+//#define CGIFLASH_DBG
+//#define CGIMQTT_DBG
+//#define CGIPINS_DBG
+//#define CGIWIFI_DBG
+//#define CONFIG_DBG
+//#define LOG_DBG
+//#define STATUS_DBG
+//#define HTTPD_DBG
+//#define MQTT_DBG
+//#define MQTTCMD_DBG
 #undef PKTBUF_DBG
-#define REST_DBG
-#define RESTCMD_DBG
-#define SERBR_DBG
-#define SERLED_DBG
+//#define REST_DBG
+//#define RESTCMD_DBG
+//#define SERBR_DBG
+//#define SERLED_DBG
 #undef SLIP_DBG
-#define UART_DBG
+//#define UART_DBG
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique
 #undef CHIP_IN_HOSTNAME
@@ -37,7 +37,7 @@
 
 
 /* enables the stdout and prints denug messages */
-#define DEBUG
+//#define DEBUG
 
 /*
  * Enables the dmx output.
@@ -60,10 +60,8 @@
 #ifdef DEBUG
 #define PDBG	os_printf
 #else
-#define PDBG	nullPrint
+#define PDBG(...)
 #endif
-
-inline void nullPrint(const char *format, ...) {}
 
 
 extern char* esp_link_version;
