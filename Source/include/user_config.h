@@ -5,11 +5,11 @@
 #include <_mingw.h>
 #endif
 
+#undef WEBLOGGING
 #undef SHOW_HEAP_USE
 //#define DEBUGIP
 //#define SDK_DBG
 
-//#define CMD_DBG
 #undef ESPFS_DBG
 #undef CGI_DBG
 //#define CGIFLASH_DBG

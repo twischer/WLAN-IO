@@ -282,7 +282,9 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
       os_timer_arm(&resetTimer, RESET_TIMEOUT, 0);
 #endif
     }
-    log_uart(false);
+#ifdef WEBLOGGING
+	log_uart(false);
+#endif
     // no more resetTimer at this point, gotta use physical reset to recover if in trouble
   } else {
     if (m != 3) {
@@ -291,7 +293,10 @@ static void ICACHE_FLASH_ATTR resetTimerCb(void *arg) {
 #endif
       wifi_set_opmode(3);
     }
-    log_uart(true);
+#ifdef WEBLOGGING
+	log_uart(true);
+#endif
+
 #ifdef CGIWIFI_DBG
     os_printf("Enabling/continuing uart log\n");
 #endif

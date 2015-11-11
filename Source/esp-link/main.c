@@ -40,8 +40,10 @@ HttpdBuiltInUrl builtInUrls[] = {
   { "/flash/next", cgiGetFirmwareNext, NULL },
   { "/flash/upload", cgiUploadFirmware, NULL },
   { "/flash/reboot", cgiRebootFirmware, NULL },
+#ifdef WEBLOGGING
   { "/log/text", ajaxLog, NULL },
   { "/log/dbg", ajaxLogDbg, NULL },
+#endif
   //Enable the line below to protect the WiFi configuration with an username/password combo.
   //    {"/wifi/*", authBasic, myPassFn},
   { "/wifi", cgiRedirect, "/wifi/wifi.html" },
@@ -101,7 +103,9 @@ void user_init(void) {
   gpio_output_set(0, 0, 0, (1<<15)); // some people tie it GND, gotta ensure it's disabled
   // init UART
   uart_init(flashConfig.baud_rate, 115200);
+#ifdef WEBLOGGING
   logInit(); // must come after init of uart
+#endif
   // say hello (leave some time to cause break in TX after boot loader's msg
   os_delay_us(10000L);
   os_printf("\n\n** %s\n", esp_link_version);
