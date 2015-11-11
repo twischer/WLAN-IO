@@ -53,8 +53,6 @@ lib/heatshrink/test_heatshrink_dynamic_theft.c
 lib/heatshrink/test_heatshrink_static.c
 mqtt/mqtt.c
 mqtt/mqtt.h
-mqtt/mqtt_cmd.c
-mqtt/mqtt_cmd.h
 mqtt/mqtt_msg.c
 mqtt/mqtt_msg.h
 mqtt/pktbuf.c
