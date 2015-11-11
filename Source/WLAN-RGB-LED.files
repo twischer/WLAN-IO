@@ -69,6 +69,4 @@ user/paramconf.c
 user/paramconf.h
 user/pwm.c
 user/pwm.h
-user/stdout.c
-user/stdout.h
 user/user_main.c
