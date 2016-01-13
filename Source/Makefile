@@ -353,9 +353,6 @@ endif
 
 $(BUILD_BASE)/espfs_img.o: html/ html/wifi/ espfs/mkespfsimage/mkespfsimage
 	$(Q) rm -rf html_compressed; mkdir html_compressed; mkdir html_compressed/wifi;
-	$(Q) cp -r html/*.js html_compressed;
-	$(Q) cp -r html/wifi/*.png html_compressed/wifi;
-	$(Q) cp -r html/wifi/*.js html_compressed/wifi;
 ifeq ("$(COMPRESS_W_HTMLCOMPRESSOR)","yes")
 	$(Q) echo "Compression assets with htmlcompressor. This may take a while..."
 		$(Q) java -jar tools/$(HTML_COMPRESSOR) \
@@ -367,14 +364,9 @@ ifeq ("$(COMPRESS_W_HTMLCOMPRESSOR)","yes")
 		-t html --remove-surrounding-spaces max --remove-quotes --remove-intertag-spaces \
 		-o $(abspath ./html_compressed)/wifi/ \
 		$(WIFI_PATH)*.html
-	$(Q) echo "Compression assets with yui-compressor. This may take a while..."
-	$(Q) for file in `find html_compressed -type f -name "*.js"`; do \
-			java -jar tools/$(YUI_COMPRESSOR) $$file -o $$file; \
-		done
 endif
 ifeq (,$(findstring mqtt,$(MODULES)))
 	$(Q) rm -rf html_compressed/mqtt.html
-	$(Q) rm -rf html_compressed/mqtt.js
 endif
 	$(Q) for file in `find html_compressed -type f -name "*.htm*"`; do \
 		cat html_compressed/head- $$file >$${file}-; \
