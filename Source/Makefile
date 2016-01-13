@@ -28,7 +28,7 @@ SDK_BASE	?= /opt/esp-open-sdk/sdk
 # Windows users use the com port i.e: ESPPORT ?= com3
 ESPTOOL		?= esptool.py
 ESPPORT		?= /dev/ttyUSB0
-ESPBAUD		?= 460800
+ESPBAUD		?= 115200
 
 # The Wifi station configuration can be hard-coded here, which makes esp-link come up in STA+AP
 # mode trying to connect to the specified AP *only* if the flash wireless settings are empty!
@@ -63,7 +63,7 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
-#MODULES ?= mqtt
+MODULES ?= mqtt
 
 # --------------- esphttpd config options ---------------
 
@@ -353,8 +353,6 @@ endif
 
 $(BUILD_BASE)/espfs_img.o: html/ html/wifi/ espfs/mkespfsimage/mkespfsimage
 	$(Q) rm -rf html_compressed; mkdir html_compressed; mkdir html_compressed/wifi;
-	$(Q) cp -r html/*.ico html_compressed;
-	$(Q) cp -r html/*.css html_compressed;
 	$(Q) cp -r html/*.js html_compressed;
 	$(Q) cp -r html/wifi/*.png html_compressed/wifi;
 	$(Q) cp -r html/wifi/*.js html_compressed/wifi;
@@ -371,9 +369,6 @@ ifeq ("$(COMPRESS_W_HTMLCOMPRESSOR)","yes")
 		$(WIFI_PATH)*.html
 	$(Q) echo "Compression assets with yui-compressor. This may take a while..."
 	$(Q) for file in `find html_compressed -type f -name "*.js"`; do \
-			java -jar tools/$(YUI_COMPRESSOR) $$file -o $$file; \
-		done
-	$(Q) for file in `find html_compressed -type f -name "*.css"`; do \
 			java -jar tools/$(YUI_COMPRESSOR) $$file -o $$file; \
 		done
 endif

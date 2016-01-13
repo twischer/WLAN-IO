@@ -1,8 +1,8 @@
 <!doctype html>
 <html><head>
   <title>esp-link</title>
-  <link rel="stylesheet" href="/pure.css">
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/twischer/WLAN-RGB-Para/master/Source/html/style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="/ui.js"></script>
 </head>
