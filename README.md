@@ -10,3 +10,11 @@ Supply	Off				On
 12V						2,03A
 14V						1,68A
 15V		75mA (1,13W)	1,57A (23,6W)
+
+
+# HOWTO test mosquitto (MQTT broker)
+    $ sudo apt-get install mosquitto mosquitto-clients
+
+    $ mosquitto_pub -h [HOST] -m hello -t test -r
+
+    $ mosquitto_sub -h [HOST] -t test -d

@@ -9,3 +9,4 @@ lib/heatshrink
 mqtt
 serial
 user
+/opt/esp-open-sdk/sdk/include
