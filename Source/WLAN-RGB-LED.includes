@@ -1,12 +1,11 @@
-cmd
+artnet
+debug
 esp-link
 espfs
 espfs/mkespfsimage/mman-win32
 httpd
 include
-include/driver
-lib/heatshrink
 mqtt
+pwm
 serial
-user
 /opt/esp-open-sdk/sdk/include
