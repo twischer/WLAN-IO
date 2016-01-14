@@ -17,12 +17,15 @@
 #include "cgiwifi.h"
 #include "cgimqtt.h"
 #include "cgiflash.h"
+#include "cgiartnet.h"
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"
 #include "config.h"
 #include "log.h"
 #include <gpio.h>
+#include "artnet.h"
+#include "pwm.h"
 
 /*
 This is the main url->function dispatching data struct.
@@ -54,6 +57,9 @@ HttpdBuiltInUrl builtInUrls[] = {
   { "/wifi/connstatus", cgiWiFiConnStatus, NULL },
   { "/wifi/setmode", cgiWiFiSetMode, NULL },
   { "/wifi/special", cgiWiFiSpecial, NULL },
+//#ifdef ARTNET
+	{"/artnet", cgiArtNet, NULL},
+//#endif
 #ifdef MQTT
   { "/mqtt", cgiMqtt, NULL },
 #endif
@@ -158,9 +164,13 @@ void user_init(void) {
       fid & 0xff, (fid&0xff00)|((fid>>16)&0xff));
 
   os_printf("** esp-link ready\n");
+
+  uint8_t duty[] = {0, 0, 0};
+  pwm_init(100, duty);
+
 #ifdef MQTT
   mqtt_client_init();
 #endif
 
-  app_init();
+  artnet_init();
 }

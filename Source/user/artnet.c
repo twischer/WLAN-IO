@@ -14,17 +14,10 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "ets_sys.h"
-#include "osapi.h"
-#include "os_type.h"
-#include "user_interface.h"
-#include "espconn.h"
-
-#include "espmissingincludes.h"
-#include "c_types.h"
+#include <esp8266.h>
 #include "pwm.h"
-#include "paramconf.h"
 #include "artnet.h"
+#include "config.h"
 
 // ----------------------------------------------------------------------------
 // op-codes
@@ -79,6 +72,7 @@
 
 uint8_t shortname[18];
 uint8_t longname[64];
+const uint8_t artnet_net = 0;
 
 //static uint8_t reply_transmit;
 
@@ -111,7 +105,7 @@ struct artnet_pollreply {
 	uint8_t ID[8];
 	uint16_t OpCode;
 	uint8_t IP[4];
-	uint16_t Port; 
+	uint16_t Port;
 	uint16_t VersInfo;
 	uint8_t NetSwitch;
 	uint8_t SubSwitch;
@@ -223,11 +217,11 @@ void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 	
 		msg.VersInfo = HTONS(0x0100);
 		msg.NetSwitch = artnet_net;
-		msg.SubSwitch = artnet_subNet;
-		msg.Oem = HTONS(0x08B1);						
+		msg.SubSwitch = flashConfig.artnet_subnet;
+		msg.Oem = HTONS(0x08B1);
 		msg.Ubea_Version = 0;
 		msg.Status1 = 0;
-		msg.EstaMan = 0;						
+		msg.EstaMan = 0;
 
 		memcpy(msg.ShortName,shortname, sizeof(msg.ShortName));
 		memcpy(msg.LongName,longname, sizeof(msg.LongName));
@@ -236,7 +230,7 @@ void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 		msg.NumPorts = HTONS(1);
 		msg.PortTypes[0]=0x80;
 		
-		msg.SwOut[0] = artnet_outputUniverse;
+		msg.SwOut[0] = flashConfig.artnet_universe;
 		
 		//read mac and write in pollreply packet
 		wifi_get_macaddr((uint8)STATION_IF,(uint8*) mac_addr);
@@ -314,10 +308,10 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 // Art-Net DMX packet
 static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned short packetlen)
 {
-	//PDBG("Received artnet output packet!\r\n");
 	const struct artnet_dmx* const dmx = (struct artnet_dmx*)data;
+	//PDBG("Received artnet output packet for universe %u\r\n", dmx->universe);
 	
-	if (dmx->universe == ((artnet_subNet << 4) | artnet_outputUniverse))
+	if (dmx->universe == ((flashConfig.artnet_subnet << 4) | flashConfig.artnet_universe))
 	{
 		uint16 dmxChannelCount = (dmx->lengthHi << 8) | dmx->length;
 
@@ -327,20 +321,13 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 			PDBG("W: Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
 			dmxChannelCount = maxChannels;
 		}
-		
-#ifdef USE_DMX_OUTPUT
-		//Daten vom Ethernetframe in den DMX Buffer kopieren
-		for(uint16_t i = 0; i<dmxChannelCount; i++) {
-			dmx_data[i] = dmx->data[i];
-		}
-#endif
 
 		/*
 		 * calulate the count of available channels
 		 * in the received package
 		 * which should be used for the pwm output
 		 */
-		sint16 availablePwmChannels = dmxChannelCount - artnet_pwmStartAddr + 1;
+		sint16 availablePwmChannels = dmxChannelCount - flashConfig.artnet_pwmstart + 1;
 		if (availablePwmChannels > PWM_CHANNEL) {
 			availablePwmChannels = PWM_CHANNEL;
 		}
@@ -348,7 +335,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		bool dataChanged = false;
 		for (uint8 i=0; i<availablePwmChannels; i++) {
 			/* pwm_start has to be called, if the values have changed */
-			const uint16 dmxIndex = artnet_pwmStartAddr - 1 + i;
+			const uint16 dmxIndex = flashConfig.artnet_pwmstart - 1 + i;
 			if ( pwm_set_duty(dmx->data[dmxIndex], i) ) {
 				PDBG("%d: %d\n", i, dmx->data[dmxIndex]);
 				dataChanged = true;
@@ -374,7 +361,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	
 	//check the id
 	if(os_strcmp((char*)&header->id,"Art-Net\0") != 0){
-		//PDBG("Wrong ArtNet header, discarded\r\n");
+		PDBG("Wrong ArtNet header, discarded\r\n");
 		return;
 	}
 
@@ -385,18 +372,18 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 			//PDBG("Received artnet poll packet!\r\n");
 			//reply_transmit = 2;
 			artnet_sendPollReply();
-			return; 
+			return;
 		}
 		//OP_POLLREPLY
 		case (OP_POLLREPLY):{
 			//PDBG("Received artnet poll reply packet!\r\n");
 			return;
 		}
-		//OP_OUTPUT	
+		//OP_OUTPUT
 		case (OP_OUTPUT):{
 			//PDBG("Received artnet output packet!\r\n");
 			artnet_recv_opoutput (&eth_buffer[0],length);
-			return; 
+			return;
 		}
 		//OP_ADDRESS
 		case (OP_ADDRESS):{
@@ -407,63 +394,23 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 		case (OP_IPPROG):{
 			//PDBG("Received artnet prog packet!\r\n");
 			//processIpProgPacket ((struct espconn *)arg,&eth_buffer[0],length);
-			return;		
-		}	
+			return;
+		}
 	}
-}
-
-
-static void artnet_loadConfig()
-{
-	parameter_t param;
-	const bool successful = paramconf_load(&param);
-
-	if (successful) {
-		artnet_subNet = param.subNet;
-		artnet_outputUniverse = param.universe;
-		artnet_pwmStartAddr = param.pwmStartAddr;
-	} else {
-		PDBG("No valid configuration data found. Using default.\n");
-		/* Init with default data */
-		artnet_subNet = 0;
-		artnet_outputUniverse = 1;
-		/* configure the first dmx address which should be used for pwm output */
-		artnet_pwmStartAddr = 1;
-	}
-
-	PDBG("Art Net configuration loaded: sub net %d, universe %d, pwm %d.\n", artnet_subNet, artnet_outputUniverse, artnet_pwmStartAddr);
-}
-
-
-void artnet_saveConfig()
-{
-	parameter_t param;
-	param.subNet = artnet_subNet;
-	param.universe = artnet_outputUniverse;
-	param.pwmStartAddr = artnet_pwmStartAddr;
-
-	paramconf_save(&param);
-
-	PDBG("Art Net configuration changed to sub net %d, universe %d, pwm %d.\n", artnet_subNet, artnet_outputUniverse, artnet_pwmStartAddr);
 }
 
 
 // ----------------------------------------------------------------------------
 // Art-Net init
-void artnet_init()
+void ICACHE_FLASH_ATTR artnet_init()
 {
-	PDBG("Art Net Init\n");
+	PDBG("Art-Net init (sub net %u, universe %u, pwmstart %u)\n", flashConfig.artnet_subnet,
+		 flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 	
-	artnet_net = 0;
 	//reply_transmit = 0;
 	strcpy((char*)shortname,"ESP8266 NODE");
 	strcpy((char*)longname,"ESP based Art-Net Node");
 
-	/*
-	 * load the configuration for the art net addresses or
-	 * use the default data
-	 */
-	artnet_loadConfig();
 
 	artnetconn.type = ESPCONN_UDP;
 	artnetconn.state = ESPCONN_NONE;
@@ -473,7 +420,4 @@ void artnet_init()
 	
 	espconn_regist_recvcb(&artnetconn, artnet_get);
 	espconn_create(&artnetconn);
-
-	uint8_t duty[] = {0, 0, 0};
-	pwm_init(100, duty);
 }

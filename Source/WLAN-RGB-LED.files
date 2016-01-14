@@ -61,12 +61,7 @@ serial/uart.c
 serial/uart.h
 user/artnet.c
 user/artnet.h
-user/cgiartnet.c
-user/cgiartnet.h
 user/diff_time.c
 user/diff_time.h
-user/paramconf.c
-user/paramconf.h
 user/pwm.c
 user/pwm.h
-user/user_main.c

@@ -14,25 +14,11 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef CONFIG_H_
-#define CONFIG_H_
-
-#include <c_types.h>
-#include "user_config.h"
+#ifndef ARTNET_H_
+#define ARTNET_H_
 
 #define MAX_CHANNELS 			512
 
-#ifdef USE_DMX_OUTPUT
-uint8_t dmx_data[MAX_CHANNELS];
-#endif
-
-uint8 artnet_net;
-uint8 artnet_subNet;
-uint8 artnet_outputUniverse;
-uint16 artnet_pwmStartAddr;
-
 void artnet_init();
-void artnet_saveConfig();
-
 
 #endif

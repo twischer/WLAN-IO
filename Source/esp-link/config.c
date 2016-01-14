@@ -22,6 +22,7 @@ FlashConfig flashDefault = {
   2, 1,                                // mqtt_timeout, mqtt_clean_session
   1883, 60,                            // mqtt port, mqtt_keepalive
   "\0", "\0", "\0", "\0", "\0",        // mqtt host, client_id, user, password, status-topic
+	0, 0, 1,							// artnet subnet, universe, pwm start address
 };
 
 typedef union {
@@ -103,6 +104,11 @@ static int ICACHE_FLASH_ATTR selectPrimary(FlashFull *fc0, FlashFull *fc1);
 
 bool ICACHE_FLASH_ATTR configRestore(void) {
   FlashFull ff0, ff1;
+  if (sizeof(ff0.fc) > sizeof(ff0.block)) {
+	  os_printf("ERR: Config settings are bigger than the requested flash block\n");
+	  return false;
+  }
+
   // read both flash sectors
   if (spi_flash_read(FLASH_ADDR, (void *)&ff0, sizeof(ff0)) != SPI_FLASH_RESULT_OK)
     os_memset(&ff0, 0, sizeof(ff0)); // clear in case of error

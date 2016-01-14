@@ -153,8 +153,11 @@ int ICACHE_FLASH_ATTR cgiMenu(HttpdConnData *connData) {
       "{\"menu\": [\"Home\", \"/home.html\", "
       "\"Wifi\", \"/wifi/wifi.html\","
       "\"\xC2\xB5" "C Console\", \"/console.html\", "
+//#ifdef ARTNET
+	  "\"Art-Net\", \"/artnet.html\","
+//#endif
 #ifdef MQTT
-      "\"REST/MQTT\", \"/mqtt.html\","
+	 "\"MQTT\", \"/mqtt.html\","
 #endif
       "\"Debug log\", \"/log.html\" ],\n"
       " \"version\": \"%s\" }", esp_link_version);
