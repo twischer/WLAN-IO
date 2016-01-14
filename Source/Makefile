@@ -63,7 +63,7 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
-MODULES ?= mqtt
+MODULES ?= pwm artnet mqtt
 
 # --------------- esphttpd config options ---------------
 
@@ -174,6 +174,12 @@ APPGEN_TOOL	?= gen_appbin.py
 CFLAGS=
 
 # set defines for optional modules
+ifneq (,$(findstring pwm,$(MODULES)))
+	CFLAGS		+= -DPWMOUT
+endif
+ifneq (,$(findstring artnet,$(MODULES)))
+	CFLAGS		+= -DARTNET
+endif
 ifneq (,$(findstring mqtt,$(MODULES)))
 	CFLAGS		+= -DMQTT
 endif
