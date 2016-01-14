@@ -31,13 +31,8 @@ httpd/httpd.c
 httpd/httpd.h
 httpd/httpdespfs.c
 httpd/httpdespfs.h
-include/driver/uart.h
-include/driver/uart_register.h
 include/esp8266.h
 include/espmissingincludes.h
-include/httpdconfig.h
-include/mem_manager.h
-include/stdint.h
 include/uart_hw.h
 include/user_config.h
 lib/heatshrink/greatest.h
