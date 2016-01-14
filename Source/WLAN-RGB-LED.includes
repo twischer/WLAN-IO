@@ -1,4 +1,11 @@
+artnet
+debug
+esp-link
+espfs
+espfs/mkespfsimage/mman-win32
+httpd
 include
-include/driver
-user
+mqtt
+pwm
+serial
 /opt/esp-open-sdk/sdk/include

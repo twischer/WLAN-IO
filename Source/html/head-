@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head>
+  <title>esp-link</title>
+  <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/jeelabs/esp-link/v2.0.rc1/html/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://raw.githubusercontent.com/jeelabs/esp-link/v2.0.rc1/html/ui.js"></script>
+</head>
+<body>
+<div id="layout">
