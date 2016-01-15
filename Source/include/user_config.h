@@ -12,6 +12,16 @@
 #define LOGL_DBG     4
 
 
+/* enter the deep sleep mode,
+ * if all PWM channels have to be set to off
+ * from MQTT.
+ * Note: Use a static IP address to make the reboot process much more faster
+ */
+#undef SLEEP_IF_ALL_PWMS_OFF
+/* deep sleep timeout (in sec) */
+#define SLEEP_TIME      15
+
+
 #undef WEBLOGGING
 #undef SHOW_HEAP_USE
 //#define DEBUGIP
@@ -19,7 +29,7 @@
 
 
 /* enables the stdout and prints denug messages */
-#define DEBUG
+//#define DEBUG
 
 #undef ESPFS_DBG
 #undef CGI_DBG
@@ -33,7 +43,7 @@
 //#define HTTPD_DBG
 //#define MQTT_DBG
 //#define MQTTCMD_DBG
-#define MQTTCLIENT_DBG
+#undef MQTTCLIENT_DBG
 #undef PKTBUF_DBG
 //#define REST_DBG
 //#define RESTCMD_DBG
@@ -42,7 +52,8 @@
 #undef SLIP_DBG
 //#define UART_DBG
 #define ARTNET_LOGL     LOGL_OFF
-#define PWMOUT_LOGL     LOGL_DBG
+#define PWMOUT_LOGL     LOGL_OFF
+#define SLEEP_LOGL      LOGL_OFF
 
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique

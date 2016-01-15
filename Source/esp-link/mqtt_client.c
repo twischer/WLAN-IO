@@ -99,6 +99,34 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
     }
 
     PDBG(PWMOUT_LOGL, "PWM output %u changed to %u", channel, duty);
+
+#ifdef SLEEP_IF_ALL_PWMS_OFF
+    static bool channels_off[PWM_CHANNEL] = {false, false, false};
+    channels_off[channel] = (data_value <= 0);
+
+    bool do_sleep = true;
+    /* only enter sleep mode, if all pwm channels have to be set to off */
+    for (uint8_t i=0; i<PWM_CHANNEL; i++) {
+        if (!channels_off[i]) {
+            do_sleep = false;
+            break;
+        }
+    }
+
+    if (do_sleep) {
+#ifdef DEBUG
+        const uint32 time = system_get_time();
+        PINF(SLEEP_LOGL, "All PWM channels off. Entering sleep mode after %u.%03ums", (time / 1000), (time % 1000));
+#endif
+        /* There is no time differens between 0, 1 and 3.
+         * Each configuration needes sometimes ca. 500ms and
+         * sometimes 1400ms
+         */
+        system_deep_sleep_set_option(0);
+        system_deep_sleep(SLEEP_TIME * 1000 * 1000);
+    }
+
+#endif
     return 1;
 }
 
