@@ -3,6 +3,7 @@
 #include "cgiwifi.h"
 #include "config.h"
 #include "mqtt.h"
+#include "pwm.h"
 
 #ifdef MQTTCLIENT_DBG
 #define DBG_MQTTCLIENT(format, ...) os_printf(format, ## __VA_ARGS__)
@@ -25,8 +26,17 @@ static MqttDataCallback data_cb;
 void ICACHE_FLASH_ATTR
 mqttConnectedCb(uint32_t *args) {
   DBG_MQTTCLIENT("MQTT Client: Connected\n");
-  //MQTT_Client* client = (MQTT_Client*)args;
+  MQTT_Client* client = (MQTT_Client*)args;
   //MQTT_Subscribe(client, "system/time", 0); // handy for testing
+
+#ifdef PWMOUT
+  // TODO make configurable from web interface
+  // full line config flashConfig
+  MQTT_Subscribe(client, "test/red", 0);
+  MQTT_Subscribe(client, "test/green", 0);
+  MQTT_Subscribe(client, "test/blue", 0);
+#endif
+
 #ifdef BRUNNELS
   MQTT_Publish(client, "announce/all", onlineMsgStr, 0, 0);
 #endif
@@ -50,6 +60,49 @@ mqttPublishedCb(uint32_t *args) {
     published_cb(args);
 }
 
+static int ICACHE_FLASH_ATTR
+mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const data, const uint32_t data_len) {
+    /* has to be between 1 and 3 digits (0..100) */
+    if (data_len < 1 || data_len > 3) {
+        PWRN(PWMOUT_LOGL, "data with wrong size");
+        return -1;
+    }
+
+    uint16_t channel = 0xFFFF;
+    // TODO PWM_CHANNEL
+    static const char mqtt_topic[] = "test/red";
+    if (strlen(mqtt_topic) == topic_len && memcmp(mqtt_topic, topic, topic_len) == 0) {
+        channel = 0;
+    }
+
+
+    if (channel >= PWM_CHANNEL) {
+        PWRN(PWMOUT_LOGL, "Higher channel than PWM output number");
+        return -2;
+    }
+
+    /* append trailing zero */
+    char data_buf[data_len + 1];
+    memcpy(data_buf, data, data_len);
+    data_buf[data_len] = 0x00;
+
+    const uint8_t data_value = atoi(data_buf);
+    if (data_value > 100) {
+        PWRN(PWMOUT_LOGL, "data value out of range");
+        return -3;
+    }
+
+    /* from percent to uint8_t (0..255) */
+    const uint16_t duty = data_value * 255 / 100;
+    if ( pwm_set_duty(duty, channel) ) {
+        /* only update, if value has realy changed */
+        pwm_start();
+    }
+
+    PDBG(PWMOUT_LOGL, "PWM output %u changed to %u", channel, duty);
+    return 1;
+}
+
 void ICACHE_FLASH_ATTR
 mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
   //  MQTT_Client* client = (MQTT_Client*)args;
@@ -67,6 +120,10 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
   os_printf("MQTT Client: Received topic: %s, data: %s\n", topicBuf, dataBuf);
   os_free(topicBuf);
   os_free(dataBuf);
+#endif
+
+#ifdef PWMOUT
+    mqttPwmData(topic, topic_len, data, data_len);
 #endif
 
   if (data_cb)
