@@ -81,6 +81,11 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
         IP2STR(&evt->event_info.got_ip.ip), IP2STR(&evt->event_info.got_ip.mask),
         IP2STR(&evt->event_info.got_ip.gw));
 #endif
+
+#ifdef DEBUG
+    const uint32 time = system_get_time();
+    PDBG(SLEEP_LOGL, "Got IP after %u.%03ums", (time / 1000), (time % 1000));
+#endif
 	break;
   case EVENT_SOFTAPMODE_STACONNECTED:
 #ifdef CGIWIFI_DBG

@@ -101,6 +101,10 @@ void user_rf_pre_init(void) {
 
 // Main routine to initialize esp-link.
 void user_init(void) {
+#ifdef DEBUG
+    const uint32 time = system_get_time();
+#endif
+
   // get the flash config so we know how to init things
   //configWipe(); // uncomment to reset the config for testing purposes
   bool restoreOk = configRestore();
@@ -109,6 +113,9 @@ void user_init(void) {
   gpio_output_set(0, 0, 0, (1<<15)); // some people tie it GND, gotta ensure it's disabled
   // init UART
   uart_init(flashConfig.baud_rate, 115200);
+
+  PDBG(SLEEP_LOGL, "user_init entered after %u.%03ums", (time / 1000), (time % 1000));
+
 #ifdef WEBLOGGING
   logInit(); // must come after init of uart
 #endif
@@ -173,4 +180,9 @@ void user_init(void) {
 #endif
 
   artnet_init();
+
+#ifdef DEBUG
+  const uint32 time2 = system_get_time();
+  PDBG(SLEEP_LOGL, "user_init exited after %u.%03ums", (time2 / 1000), (time2 % 1000));
+#endif
 }
