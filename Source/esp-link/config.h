@@ -28,6 +28,7 @@ typedef struct {
   char     mqtt_status_topic[32];
 
   char     mqtt_pwms[PWM_CHANNEL][32];
+  char     mqtt_heater[32];
 
   uint8_t  artnet_subnet;
   uint8_t  artnet_universe;

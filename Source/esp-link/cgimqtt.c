@@ -45,14 +45,16 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-username\":\"%s\", "
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
-      "\"mqtt-status-value\":\"%s\"",
+      "\"mqtt-status-value\":\"%s\", "
+      "\"mqtt-heater\":\"%s\"",
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, status_buf2);
+      flashConfig.mqtt_status_topic, status_buf2,
+      flashConfig.mqtt_heater);
 
   for (uint8_t i=0; i<PWM_CHANNEL; i++) {
     len += os_sprintf(&buff[len], ", \"mqtt-pwm%u\":\"%s\"", i, flashConfig.mqtt_pwms[i]);
@@ -146,6 +148,10 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
       if (getStringArg(connData, name, flashConfig.mqtt_pwms[i], sizeof(flashConfig.mqtt_pwms[i])) < 0) {
         return HTTPD_CGI_DONE;
       }
+  }
+
+  if (getStringArg(connData, "mqtt-heater", flashConfig.mqtt_heater, sizeof(flashConfig.mqtt_heater)) < 0) {
+    return HTTPD_CGI_DONE;
   }
 
   // no action required if mqtt status settings change, they just get picked up at the

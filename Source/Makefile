@@ -37,7 +37,7 @@ ESPBAUD		?= 115200
 # STA_PASS ?= 
 
 # hostname or IP address for wifi flashing
-ESP_HOSTNAME        ?= esp-link
+ESP_HOSTNAME        ?= 192.168.0.101
 
 # --------------- chipset configuration   ---------------
 
@@ -63,7 +63,8 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
-MODULES ?= pwm artnet mqtt
+#MODULES ?= mqtt pwm artnet
+MODULES ?= mqtt heater
 
 # --------------- esphttpd config options ---------------
 
@@ -182,6 +183,9 @@ ifneq (,$(findstring artnet,$(MODULES)))
 endif
 ifneq (,$(findstring mqtt,$(MODULES)))
 	CFLAGS		+= -DMQTT
+endif
+ifneq (,$(findstring heater,$(MODULES)))
+	CFLAGS		+= -DHEATER
 endif
 
 
@@ -342,7 +346,15 @@ flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
 	  0x00000 "$(SDK_BASE)/bin/boot_v1.4(b1).bin" 0x01000 $(FW_BASE)/user1.bin \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
-	  
+
+flash1: all
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
+	  0x01000 $(FW_BASE)/user1.bin
+
+flash2: all
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
+	  0x41000 $(FW_BASE)/user2.bin
+
 tools/$(HTML_COMPRESSOR):
 	$(Q) mkdir -p tools
   ifeq ($(OS),Windows_NT)

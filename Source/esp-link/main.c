@@ -31,6 +31,9 @@
 #ifdef PWMOUT
 #include "pwm.h"
 #endif
+#ifdef HEATER
+#include "heater.h"
+#endif
 
 /*
 This is the main url->function dispatching data struct.
@@ -188,6 +191,10 @@ void user_init(void) {
 
 #ifdef ARTNET
   artnet_init();
+#endif
+
+#ifdef HEATER
+  heater_init();
 #endif
 
 #ifdef DEBUG
