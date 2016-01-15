@@ -9,6 +9,8 @@ It implements a number of features:
 - outbound TCP (and thus HTTP) connections from the attached micro-controller to the internet
 - outbound REST HTTP requests from the attached micro-controller to the internet, protocol
   based on espduino and compatible with [tuanpmt/espduino](https://github.com/tuanpmt/espduino)
+- DHTxx driver to publish the temperature and humaity with MQTT.
+  The driver was copiied from [DHTxx](https://github.com/CHERTS/esp8266-dht11_22).
 
 The firmware includes a tiny HTTP server based on
 [esphttpd](http://www.esp8266.com/viewforum.php?f=34)

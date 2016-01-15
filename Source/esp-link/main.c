@@ -34,6 +34,9 @@
 #ifdef HEATER
 #include "heater.h"
 #endif
+#ifdef DHTXX
+#include "dhtxx_mqtt.h"
+#endif
 
 /*
 This is the main url->function dispatching data struct.
@@ -195,6 +198,10 @@ void user_init(void) {
 
 #ifdef HEATER
   heater_init();
+#endif
+
+#ifdef DHTXX
+  dhtxx_mqtt_init();
 #endif
 
 #ifdef DEBUG
