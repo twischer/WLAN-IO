@@ -2,7 +2,9 @@
 #include "heater.h"
 
 /* Defines the GPIOs of the ESP which are connected with the shaft encoder
- * of the heater
+ * of the heater.
+ * Note: Set the GPIO alternativ function this pins,
+ * if using other ones.
  */
 #define SHAFT_ENCODER_PIN1	0
 #define SHAFT_ENCODER_PIN2	2
@@ -158,6 +160,9 @@ void ICACHE_FLASH_ATTR heater_setTemp(const uint8_t temperature)
 
 void ICACHE_FLASH_ATTR heater_init(void)
 {
+	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
+	PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2);
+
 	/* use inverted logic, because of PNP transistor */
 	/* simulate open state for shaft encoder */
 	GPIO_OUTPUT_SET(SHAFT_ENCODER_PIN1, 1);

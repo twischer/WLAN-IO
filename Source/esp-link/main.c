@@ -91,10 +91,10 @@ char* esp_link_version = VERS_STR(VERSION);
 // address of espfs binary blob
 extern uint32_t _binary_espfs_img_start;
 
-static char *rst_codes[] = {
+static const char* const rst_codes[] = {
   "normal", "wdt reset", "exception", "soft wdt", "restart", "deep sleep", "external",
 };
-static char *flash_maps[] = {
+static const char* const flash_maps[] = {
   "512KB:256/256", "256KB", "1MB:512/512", "2MB:512/512", "4MB:512/512",
   "2MB:1024/1024", "4MB:1024/1024"
 };
