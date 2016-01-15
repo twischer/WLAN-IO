@@ -70,8 +70,7 @@
 
 #define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
 
-uint8_t shortname[18];
-uint8_t longname[64];
+static const char longname[] = "ESP based Art-Net Node";
 const uint8_t artnet_net = 0;
 
 //static uint8_t reply_transmit;
@@ -113,8 +112,8 @@ struct artnet_pollreply {
 	uint8_t Ubea_Version;
 	uint8_t Status1;
 	uint16_t EstaMan;
-	uint8_t ShortName[18];
-	uint8_t LongName[64];
+    char ShortName[18];
+    char LongName[64];
 	uint8_t NodeReport[64];
 	uint16_t NumPorts;
 	uint8_t PortTypes[4];
@@ -223,8 +222,8 @@ void ICACHE_FLASH_ATTR artnet_sendPollReply (void)
 		msg.Status1 = 0;
 		msg.EstaMan = 0;
 
-		memcpy(msg.ShortName,shortname, sizeof(msg.ShortName));
-		memcpy(msg.LongName,longname, sizeof(msg.LongName));
+        strncpy(msg.ShortName,flashConfig.hostname, sizeof(msg.ShortName));
+        strncpy(msg.LongName,longname, sizeof(msg.LongName));
 		strcpy((char *)msg.NodeReport,"OK");
 	
 		msg.NumPorts = HTONS(1);
@@ -407,12 +406,7 @@ void ICACHE_FLASH_ATTR artnet_init()
     PDBG(ARTNET_LOGL, "Art-Net init (sub net %u, universe %u, pwmstart %u)", flashConfig.artnet_subnet,
 		 flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 	
-	//reply_transmit = 0;
-	strcpy((char*)shortname,"ESP8266 NODE");
-	strcpy((char*)longname,"ESP based Art-Net Node");
-
-
-	artnetconn.type = ESPCONN_UDP;
+    artnetconn.type = ESPCONN_UDP;
 	artnetconn.state = ESPCONN_NONE;
 	artnetconn.proto.udp = &artnetudp;
 	artnetudp.local_port=ARTNET_PORT;

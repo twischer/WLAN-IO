@@ -22,7 +22,16 @@ FlashConfig flashDefault = {
   2, 1,                                // mqtt_timeout, mqtt_clean_session
   1883, 60,                            // mqtt port, mqtt_keepalive
   "\0", "\0", "\0", "\0", "\0",        // mqtt host, client_id, user, password, status-topic
-	0, 0, 1,							// artnet subnet, universe, pwm start address
+
+    .mqtt_pwms = {
+        "led/red",
+        "led/green",
+        "led/blue",
+    },
+
+    .artnet_subnet = 0,
+    .artnet_universe = 0,
+    .artnet_pwmstart = 1,
 };
 
 typedef union {

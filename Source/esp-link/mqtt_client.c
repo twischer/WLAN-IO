@@ -30,11 +30,9 @@ mqttConnectedCb(uint32_t *args) {
   //MQTT_Subscribe(client, "system/time", 0); // handy for testing
 
 #ifdef PWMOUT
-  // TODO make configurable from web interface
-  // full line config flashConfig
-  MQTT_Subscribe(client, "test/red", 0);
-  MQTT_Subscribe(client, "test/green", 0);
-  MQTT_Subscribe(client, "test/blue", 0);
+  for (uint8_t i=0; i<PWM_CHANNEL; i++) {
+    MQTT_Subscribe(client, flashConfig.mqtt_pwms[i], 0);
+  }
 #endif
 
 #ifdef BRUNNELS
@@ -69,10 +67,11 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
     }
 
     uint16_t channel = 0xFFFF;
-    // TODO PWM_CHANNEL
-    static const char mqtt_topic[] = "test/red";
-    if (strlen(mqtt_topic) == topic_len && memcmp(mqtt_topic, topic, topic_len) == 0) {
-        channel = 0;
+    for (uint8_t i=0; i<PWM_CHANNEL; i++) {
+        if (strlen(flashConfig.mqtt_pwms[i]) == topic_len && memcmp(flashConfig.mqtt_pwms[i], topic, topic_len) == 0) {
+            channel = i;
+            break;
+        }
     }
 
 
