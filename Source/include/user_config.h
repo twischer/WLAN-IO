@@ -22,6 +22,10 @@
 #define SLEEP_TIME      15
 
 
+#define PWM_CHANNEL 3
+
+
+
 #undef WEBLOGGING
 #undef SHOW_HEAP_USE
 //#define DEBUGIP
@@ -54,6 +58,7 @@
 #define ARTNET_LOGL     LOGL_OFF
 #define PWMOUT_LOGL     LOGL_OFF
 #define SLEEP_LOGL      LOGL_OFF
+#define HEATER_LOGL     LOGL_DBG
 
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique

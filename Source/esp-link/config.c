@@ -28,6 +28,7 @@ FlashConfig flashDefault = {
         "led/green",
         "led/blue",
     },
+    .mqtt_heater = "esp-link/heater",
 
     .artnet_subnet = 0,
     .artnet_universe = 0,

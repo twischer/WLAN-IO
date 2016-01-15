@@ -5,6 +5,10 @@
 #include "mqtt.h"
 #include "pwm.h"
 
+#ifdef HEATER
+#include "heater.h"
+#endif
+
 #ifdef MQTTCLIENT_DBG
 #define DBG_MQTTCLIENT(format, ...) os_printf(format, ## __VA_ARGS__)
 #else
@@ -26,8 +30,9 @@ static MqttDataCallback data_cb;
 void ICACHE_FLASH_ATTR
 mqttConnectedCb(uint32_t *args) {
   DBG_MQTTCLIENT("MQTT Client: Connected\n");
+#if defined PWMOUT || defined BRUNNELS || defined HEATER
   MQTT_Client* client = (MQTT_Client*)args;
-  //MQTT_Subscribe(client, "system/time", 0); // handy for testing
+#endif
 
 #ifdef PWMOUT
   for (uint8_t i=0; i<PWM_CHANNEL; i++) {
@@ -38,6 +43,11 @@ mqttConnectedCb(uint32_t *args) {
 #ifdef BRUNNELS
   MQTT_Publish(client, "announce/all", onlineMsgStr, 0, 0);
 #endif
+
+#ifdef HEATER
+    MQTT_Subscribe(client, flashConfig.mqtt_heater, 0);
+#endif
+
   if (connected_cb)
     connected_cb(args);
 }
@@ -58,6 +68,18 @@ mqttPublishedCb(uint32_t *args) {
     published_cb(args);
 }
 
+int ICACHE_FLASH_ATTR
+mqttGetNumber(const char* const data, const uint32_t data_len /* TODO , const int min, const int max */) {
+    /* append trailing zero */
+    char data_buf[data_len + 1];
+    memcpy(data_buf, data, data_len);
+    data_buf[data_len] = 0x00;
+
+    const uint8_t data_value = atoi(data_buf);
+    return data_value;
+}
+
+#ifdef PWMOUT
 static int ICACHE_FLASH_ATTR
 mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const data, const uint32_t data_len) {
     /* has to be between 1 and 3 digits (0..100) */
@@ -80,12 +102,7 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
         return -2;
     }
 
-    /* append trailing zero */
-    char data_buf[data_len + 1];
-    memcpy(data_buf, data, data_len);
-    data_buf[data_len] = 0x00;
-
-    const uint8_t data_value = atoi(data_buf);
+    const uint8_t data_value = mqttGetNumber(data, data_len);
     if (data_value > 100) {
         PWRN(PWMOUT_LOGL, "data value out of range");
         return -3;
@@ -129,6 +146,7 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
 #endif
     return 1;
 }
+#endif
 
 void ICACHE_FLASH_ATTR
 mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
@@ -151,6 +169,13 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
 
 #ifdef PWMOUT
     mqttPwmData(topic, topic_len, data, data_len);
+#endif
+
+#ifdef HEATER
+    if (strlen(flashConfig.mqtt_heater) == topic_len && memcmp(flashConfig.mqtt_heater, topic, topic_len) == 0) {
+        const uint8_t temp = mqttGetNumber(data, data_len);
+        heater_setTemp(temp);
+    }
 #endif
 
   if (data_cb)
