@@ -22,6 +22,10 @@
 #define SLEEP_TIME      15
 
 
+#define PWM_CHANNEL 3
+
+
+
 #undef WEBLOGGING
 #undef SHOW_HEAP_USE
 //#define DEBUGIP

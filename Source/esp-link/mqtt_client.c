@@ -26,8 +26,9 @@ static MqttDataCallback data_cb;
 void ICACHE_FLASH_ATTR
 mqttConnectedCb(uint32_t *args) {
   DBG_MQTTCLIENT("MQTT Client: Connected\n");
+#ifdef PWMOUT
   MQTT_Client* client = (MQTT_Client*)args;
-  //MQTT_Subscribe(client, "system/time", 0); // handy for testing
+#endif
 
 #ifdef PWMOUT
   for (uint8_t i=0; i<PWM_CHANNEL; i++) {
@@ -58,6 +59,7 @@ mqttPublishedCb(uint32_t *args) {
     published_cb(args);
 }
 
+#ifdef PWMOUT
 static int ICACHE_FLASH_ATTR
 mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const data, const uint32_t data_len) {
     /* has to be between 1 and 3 digits (0..100) */
@@ -129,6 +131,7 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
 #endif
     return 1;
 }
+#endif
 
 void ICACHE_FLASH_ATTR
 mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {

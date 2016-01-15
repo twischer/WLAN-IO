@@ -24,8 +24,13 @@
 #include "config.h"
 #include "log.h"
 #include <gpio.h>
+
+#ifdef ARTNET
 #include "artnet.h"
+#endif
+#ifdef PWMOUT
 #include "pwm.h"
+#endif
 
 /*
 This is the main url->function dispatching data struct.
@@ -172,14 +177,18 @@ void user_init(void) {
 
   os_printf("** esp-link ready\n");
 
+#ifdef PWMOUT
   uint8_t duty[] = {0, 0, 0};
   pwm_init(100, duty);
+#endif
 
 #ifdef MQTT
   mqtt_client_init();
 #endif
 
+#ifdef ARTNET
   artnet_init();
+#endif
 
 #ifdef DEBUG
   const uint32 time2 = system_get_time();

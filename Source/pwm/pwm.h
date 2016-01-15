@@ -2,9 +2,8 @@
 #define __PWM_H__
 
 #include "ets_sys.h"
+#include "user_config.h"
 
-
-#define PWM_CHANNEL 3
 
 struct pwm_single_param {
     uint16 gpio_set;
