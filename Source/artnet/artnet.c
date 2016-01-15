@@ -285,7 +285,7 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 		// program ip
 		if ((ipprog->command & 4) == 4) {
 			struct ip_info ipconfig;
-			PDBG("Received ip prog packet!\r\n");
+            PDBG(ARTNET_LOGL, "Received ip prog packet!\r\n");
 			
 			
 			memcpy(&ipconfig.ip.addr, &ipprog->progIp[0],4);
@@ -318,7 +318,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		/* overwrite chanel count, if bigger than package */
 		const uint16 maxChannels = packetlen - sizeof(struct artnet_dmx);
 		if(dmxChannelCount > maxChannels) {
-			PDBG("W: Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
+            PWRN(ARTNET_LOGL, "Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
 			dmxChannelCount = maxChannels;
 		}
 
@@ -337,7 +337,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 			/* pwm_start has to be called, if the values have changed */
 			const uint16 dmxIndex = flashConfig.artnet_pwmstart - 1 + i;
 			if ( pwm_set_duty(dmx->data[dmxIndex], i) ) {
-				PDBG("%d: %d\n", i, dmx->data[dmxIndex]);
+                PDBG(ARTNET_LOGL, "%d: %d\n", i, dmx->data[dmxIndex]);
 				dataChanged = true;
 			}
 		}
@@ -361,7 +361,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	
 	//check the id
 	if(os_strcmp((char*)&header->id,"Art-Net\0") != 0){
-		PDBG("Wrong ArtNet header, discarded\r\n");
+        PWRN(ARTNET_LOGL, "Wrong ArtNet header, discarded\r\n");
 		return;
 	}
 
@@ -404,7 +404,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 // Art-Net init
 void ICACHE_FLASH_ATTR artnet_init()
 {
-	PDBG("Art-Net init (sub net %u, universe %u, pwmstart %u)\n", flashConfig.artnet_subnet,
+    PDBG(ARTNET_LOGL, "Art-Net init (sub net %u, universe %u, pwmstart %u)", flashConfig.artnet_subnet,
 		 flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 	
 	//reply_transmit = 0;

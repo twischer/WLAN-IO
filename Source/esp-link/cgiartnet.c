@@ -80,7 +80,7 @@ int ICACHE_FLASH_ATTR cgiArtNetSet(HttpdConnData *connData) {
   flashConfig.artnet_pwmstart = atoi(buffer);
 
 
-  PDBG("Saving config (sub %u univ %u pwm %u)\n", flashConfig.artnet_subnet, flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
+  PINF(ARTNET_LOGL, "Saving config (sub %u univ %u pwm %u)\n", flashConfig.artnet_subnet, flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 
   if (configSave()) {
 	httpdRedirect(connData, "/artnet.html");

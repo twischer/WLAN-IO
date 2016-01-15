@@ -5,10 +5,21 @@
 #include <_mingw.h>
 #endif
 
+#define LOGL_OFF     0
+#define LOGL_ERR     1
+#define LOGL_WRN     2
+#define LOGL_INF     3
+#define LOGL_DBG     4
+
+
 #undef WEBLOGGING
 #undef SHOW_HEAP_USE
 //#define DEBUGIP
 //#define SDK_DBG
+
+
+/* enables the stdout and prints denug messages */
+#define DEBUG
 
 #undef ESPFS_DBG
 #undef CGI_DBG
@@ -22,6 +33,7 @@
 //#define HTTPD_DBG
 //#define MQTT_DBG
 //#define MQTTCMD_DBG
+#define MQTTCLIENT_DBG
 #undef PKTBUF_DBG
 //#define REST_DBG
 //#define RESTCMD_DBG
@@ -29,6 +41,9 @@
 //#define SERLED_DBG
 #undef SLIP_DBG
 //#define UART_DBG
+#define ARTNET_LOGL     LOGL_OFF
+#define PWMOUT_LOGL     LOGL_DBG
+
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique
 #undef CHIP_IN_HOSTNAME
@@ -36,13 +51,23 @@
 #define SYS_CLK_MHZ		SYS_CPU_80MHZ
 
 
-/* enables the stdout and prints denug messages */
-#undef DEBUG
 
 
 #ifdef DEBUG
-#define PDBG	os_printf
+#define LOG(type, logl, fmt, ...) \
+    if (logl >= type) { \
+        os_printf(#type "[%s:%u]" fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+    }
+
+#define PERR(...)	LOG(LOGL_ERR, ##__VA_ARGS__)
+#define PWRN(...)	LOG(LOGL_WRN, ##__VA_ARGS__)
+#define PINF(...)	LOG(LOGL_INF, ##__VA_ARGS__)
+#define PDBG(...)	LOG(LOGL_DBG, ##__VA_ARGS__)
+
 #else
+#define PERR(...)
+#define PWRN(...)
+#define PINF(...)
 #define PDBG(...)
 #endif
 
