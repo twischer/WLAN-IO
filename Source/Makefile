@@ -63,8 +63,9 @@ LED_SERIAL_PIN      ?= 14
 CHANGE_TO_STA ?= yes
 
 # Optional Modules
+# mqtt pwm artnet heater dhtxx
 #MODULES ?= mqtt pwm artnet
-MODULES ?= mqtt heater
+MODULES ?= mqtt heater dhtxx
 
 # --------------- esphttpd config options ---------------
 
@@ -186,6 +187,9 @@ ifneq (,$(findstring mqtt,$(MODULES)))
 endif
 ifneq (,$(findstring heater,$(MODULES)))
 	CFLAGS		+= -DHEATER
+endif
+ifneq (,$(findstring dhtxx,$(MODULES)))
+	CFLAGS		+= -DDHTXX
 endif
 
 

@@ -2,6 +2,12 @@ artnet/artnet.c
 artnet/artnet.h
 debug/diff_time.c
 debug/diff_time.h
+dhtxx/dht22.c
+dhtxx/dht22.h
+dhtxx/dhtxx_mqtt.c
+dhtxx/dhtxx_mqtt.h
+dhtxx/gpio16.c
+dhtxx/gpio16.h
 esp-link/cgi.c
 esp-link/cgi.h
 esp-link/cgiartnet.c
@@ -26,6 +32,8 @@ espfs/mkespfsimage/main.c
 espfs/espfs.c
 espfs/espfs.h
 espfs/espfsformat.h
+heater/heater.c
+heater/heater.h
 httpd/auth.c
 httpd/auth.h
 httpd/base64.c

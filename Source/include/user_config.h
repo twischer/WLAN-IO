@@ -59,6 +59,7 @@
 #define PWMOUT_LOGL     LOGL_OFF
 #define SLEEP_LOGL      LOGL_OFF
 #define HEATER_LOGL     LOGL_DBG
+#define DHTXX_LOGL      LOGL_DBG
 
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique

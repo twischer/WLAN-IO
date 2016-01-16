@@ -24,11 +24,13 @@ FlashConfig flashDefault = {
   "\0", "\0", "\0", "\0", "\0",        // mqtt host, client_id, user, password, status-topic
 
     .mqtt_pwms = {
-        "led/red",
-        "led/green",
-        "led/blue",
+        "esp-link/red",
+        "esp-link/green",
+        "esp-link/blue",
     },
     .mqtt_heater = "esp-link/heater",
+    .mqtt_temperature = "esp-link/temp",
+    .mqtt_humidity = "esp-link/humi",
 
     .artnet_subnet = 0,
     .artnet_universe = 0,

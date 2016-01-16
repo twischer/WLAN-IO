@@ -17,20 +17,6 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
 
   if (connData->conn==NULL) return HTTPD_CGI_DONE;
 
-  // get the current status topic for display
-  char status_buf1[128], *sb1=status_buf1;
-  char status_buf2[128], *sb2=status_buf2;
-
-  // quote all " for the json, sigh...
-  for (int i=0; i<127 && *sb1; i++) {
-    if (*sb1 == '"') {
-      *sb2++ = '\\';
-      i++;
-    }
-    *sb2++ = *sb1++;
-  }
-  *sb2 = 0;
-
   len = os_sprintf(buff, "{ "
       "\"slip-enable\":%d, "
       "\"mqtt-enable\":%d, "
@@ -46,15 +32,18 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
       "\"mqtt-status-value\":\"%s\", "
-      "\"mqtt-heater\":\"%s\"",
+      "\"mqtt-heater\":\"%s\", "
+      "\"mqtt-temp\":\"%s\", "
+      "\"mqtt-humi\":\"%s\"",
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, status_buf2,
-      flashConfig.mqtt_heater);
+      flashConfig.mqtt_status_topic, "unkown",
+      flashConfig.mqtt_heater, flashConfig.mqtt_temperature,
+      flashConfig.mqtt_humidity);
 
   for (uint8_t i=0; i<PWM_CHANNEL; i++) {
     len += os_sprintf(&buff[len], ", \"mqtt-pwm%u\":\"%s\"", i, flashConfig.mqtt_pwms[i]);
@@ -151,6 +140,14 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
   }
 
   if (getStringArg(connData, "mqtt-heater", flashConfig.mqtt_heater, sizeof(flashConfig.mqtt_heater)) < 0) {
+    return HTTPD_CGI_DONE;
+  }
+
+  if (getStringArg(connData, "mqtt-temp", flashConfig.mqtt_temperature, sizeof(flashConfig.mqtt_temperature)) < 0) {
+    return HTTPD_CGI_DONE;
+  }
+
+  if (getStringArg(connData, "mqtt-humi", flashConfig.mqtt_humidity, sizeof(flashConfig.mqtt_humidity)) < 0) {
     return HTTPD_CGI_DONE;
   }
 
