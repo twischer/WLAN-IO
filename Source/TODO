@@ -1,3 +1,7 @@
+pwm aus sdk verwenden
+- gucken ob reset möglich um sync mit zero crossing zu ermöglichen
+
+
 os_delay in stdout einfügen, um bussy waiting zu verkleinern
 
 add void system_restore(void); to webinterface
