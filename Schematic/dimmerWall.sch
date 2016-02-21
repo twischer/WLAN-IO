@@ -12522,7 +12522,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="C2" library="rcl" deviceset="CPOL-EU" device="E2.5-6" value="10u/16"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
-<part name="L1" library="rcl" deviceset="L-EU" device="0204/5"/>
+<part name="L1" library="rcl" deviceset="L-EU" device="0204/5" value="330n"/>
 <part name="P+1" library="supply1" deviceset="+5V" device=""/>
 <part name="U$1" library="esp8266modules" deviceset="ESP8266" device=""/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
@@ -12531,7 +12531,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="D1" library="diode" deviceset="1N581*" device="" technology="7-B"/>
-<part name="D4" library="diode" deviceset="1N581*" device="" technology="7-B"/>
+<part name="D4" library="diode" deviceset="1N581*" device="" technology="7-B" value="1N4148"/>
 <part name="F3" library="fuse" deviceset="FUSE" device="SHK20L" value="1A flink"/>
 <part name="S1" library="switch-omron" deviceset="10-XX" device=""/>
 <part name="S2" library="switch-omron" deviceset="10-XX" device=""/>

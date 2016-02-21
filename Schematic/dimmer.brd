@@ -791,11 +791,11 @@ design rules under a new name.</description>
 <element name="B2" library="rectifier" package="2KBP" value="" x="43.18" y="12.7" rot="R180"/>
 <element name="C1" library="rcl" package="E2,5-6" value="10u/16" x="27.94" y="19.05" rot="R270"/>
 <element name="C2" library="rcl" package="E2,5-6" value="10u/16" x="22.86" y="19.05" rot="R270"/>
-<element name="L1" library="rcl" package="0204/5" value="" x="27.94" y="25.4"/>
+<element name="L1" library="rcl" package="0204/5" value="330n" x="27.94" y="25.4"/>
 <element name="U$1" library="esp8266modules" package="ESP-03" value="ESP8266" x="9.906" y="22.606" rot="R180"/>
 <element name="T1" library="transistor" package="TO92" value="BC547" x="30.48" y="33.02" rot="R90"/>
 <element name="D1" library="diode" package="DO41-7.6" value="1N5817-B" x="26.67" y="27.94" rot="R180"/>
-<element name="D4" library="diode" package="DO41-7.6" value="1N5817-B" x="26.67" y="22.86"/>
+<element name="D4" library="diode" package="DO41-7.6" value="1N4148" x="26.67" y="22.86"/>
 <element name="F3" library="fuse" package="SHK20L" value="1A flink" x="30.48" y="5.08">
 <attribute name="MF" value="" x="30.48" y="5.08" size="1.778" layer="27" display="off"/>
 <attribute name="OC_NEWARK" value="unknown" x="30.48" y="5.08" size="1.778" layer="27" display="off"/>
