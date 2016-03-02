@@ -85,6 +85,40 @@ uint32* const ICACHE_FLASH_ATTR getNextFlashAddr(void) {
     return (uint32*)addr;
 }
 
+// TODO only works with 512KB flash
+#define BOOTLOADER_CONFIG_ADDR  0x7F000
+
+/* Should be a position which is not used by the 2nd stage bootloader.
+ * But it has to be in the same flash block as the bootloader config
+ */
+#define BOOTLOADER_CONFIG_SUCCESS_BYTE_POS  0x2F
+#define BOOTLOADER_CONFIG_SUCCESS_MAGIC     0xA5
+
+static void ICACHE_FLASH_ATTR cgiFlashSetUpgradeSuccessful(void) {
+    uint8 bootloaderConfig[BOOTLOADER_CONFIG_SUCCESS_BYTE_POS + 1];
+    spi_flash_read(BOOTLOADER_CONFIG_ADDR, (uint32*)bootloaderConfig, sizeof(bootloaderConfig));
+
+    /* cancle, if already set */
+    if (bootloaderConfig[BOOTLOADER_CONFIG_SUCCESS_BYTE_POS] == BOOTLOADER_CONFIG_SUCCESS_MAGIC) {
+        return;
+    }
+
+    /* set the upgrade successful byte */
+    bootloaderConfig[BOOTLOADER_CONFIG_SUCCESS_BYTE_POS] = BOOTLOADER_CONFIG_SUCCESS_MAGIC;
+
+    spi_flash_erase_sector(BOOTLOADER_CONFIG_ADDR / SPI_FLASH_SEC_SIZE);
+    spi_flash_write(BOOTLOADER_CONFIG_ADDR, (uint32*)bootloaderConfig, sizeof(bootloaderConfig));
+}
+
+static bool ICACHE_FLASH_ATTR cgiFlashIsUpgradeSuccessful(void) {
+    uint8 bootloaderConfig[BOOTLOADER_CONFIG_SUCCESS_BYTE_POS + 1];
+    spi_flash_read(BOOTLOADER_CONFIG_ADDR, (uint32*)bootloaderConfig, sizeof(bootloaderConfig));
+
+    const bool successfull = (bootloaderConfig[BOOTLOADER_CONFIG_SUCCESS_BYTE_POS] == BOOTLOADER_CONFIG_SUCCESS_MAGIC);
+    DBG("Upgrade successful: %u\n", successfull);
+    return successfull;
+}
+
 //===== Cgi to query which firmware needs to be uploaded next
 int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   if (connData->conn==NULL) return HTTPD_CGI_DONE; // Connection aborted. Clean up.
@@ -106,10 +140,7 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   /* the httpd works and a firmeware upgrade would be possible.
    * So the last upgrade was successful
    */
-  if (!flashConfig.upgrade_successful) {
-      flashConfig.upgrade_successful = true;
-      configSave();
-  }
+  cgiFlashSetUpgradeSuccessful();
 
   return HTTPD_CGI_DONE;
 }
@@ -224,13 +255,6 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
   httpdHeader(connData, "Content-Length", "0");
   httpdEndHeaders(connData);
 
-  /* remember that this is the first time booting into the new firmware.
-   * So go back to the old firmware,
-   * if the boot fails.
-   */
-  flashConfig.upgrade_successful = false;
-  configSave();
-
   // Schedule a reboot
   system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
   os_timer_disarm(&flash_reboot_timer);
@@ -261,7 +285,7 @@ static void ICACHE_FLASH_ATTR undoUpgradeIfPossible(void* const timer) {
   }
 
   /* Do not undo the upgrade, if it boots successfully ones */
-  if (flashConfig.upgrade_successful) {
+  if (cgiFlashIsUpgradeSuccessful()) {
       return;
   }
 
@@ -278,7 +302,7 @@ static void ICACHE_FLASH_ATTR undoUpgradeIfPossible(void* const timer) {
 
 int ICACHE_FLASH_ATTR cgiFlashCheckUpgradeHealthy() {
     /* Do not undo the upgrade, if it boots successfully ones */
-    if (flashConfig.upgrade_successful) {
+    if (cgiFlashIsUpgradeSuccessful()) {
         return -1;
     }
 
