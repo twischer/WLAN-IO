@@ -16,6 +16,7 @@
 #include "cgiwifi.h"
 #include "cgimqtt.h"
 #include "cgiflash.h"
+#include "safeupgrade.h"
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"

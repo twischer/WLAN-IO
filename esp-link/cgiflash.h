@@ -3,8 +3,8 @@
 
 #include "httpd.h"
 
-int cgiFlashCheckUpgradeHealthy(void);
 uint32* const getNextFlashAddr(void);
+const char* const checkUpgradedFirmware(void);
 
 int cgiReadFlash(HttpdConnData *connData);
 int cgiGetFirmwareNext(HttpdConnData *connData);
