@@ -21,7 +21,7 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "espfs.h"
 #include "safeupgrade.h"
 
-#define SPI_FLASH_MEM_EMU_START_ADDR    0x40200000
+#define SPI_FLASH_MEM_EMU_START_ADDR  0x40200000
 
 #ifdef CGIFLASH_DBG
 #define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
