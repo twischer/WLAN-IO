@@ -135,6 +135,12 @@ void user_init(void) {
   // get the flash config so we know how to init things
   //configWipe(); // uncomment to reset the config for testing purposes
   bool restoreOk = configRestore();
+
+  /* undo upgrade, if the first boot failes
+   * with an watchdog reset, soft watchdog reset or an exception
+   */
+  cgiFlashCheckUpgradeHealthy();
+
   // Init gpio pin registers
   gpio_init();
   gpio_output_set(0, 0, 0, (1<<15)); // some people tie it to GND, gotta ensure it's disabled

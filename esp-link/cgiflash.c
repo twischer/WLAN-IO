@@ -19,8 +19,13 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "cgi.h"
 #include "cgiflash.h"
 #include "espfs.h"
+#include "config.h"
 
-#define SPI_FLASH_MEM_EMU_START_ADDR  0x40200000
+#define SPI_FLASH_MEM_EMU_START_ADDR    0x40200000
+/* the timeout which will wait for the wifi flasher response
+ * until the upgrade will be undone (in seconds)
+ */
+#define UPGRADE_FAILED_TIMEOUT          20
 
 #ifdef CGIFLASH_DBG
 #define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
@@ -58,6 +63,19 @@ static int ICACHE_FLASH_ATTR getNextSPIFlashAddr(void) {
     return address;
 }
 
+static const char* const ICACHE_FLASH_ATTR checkUpgradedFirmware()
+{
+    // sanity-check that the 'next' partition actually contains something that looks like
+    // valid firmware
+    const int address = getNextSPIFlashAddr();
+    uint32 buf[8];
+    DBG("Checking %p\n", (void *)address);
+    spi_flash_read(address, buf, sizeof(buf));
+    char *err = check_header(buf);
+
+    return err;
+}
+
 uint32* const ICACHE_FLASH_ATTR getNextFlashAddr(void) {
     const uint32 addr = SPI_FLASH_MEM_EMU_START_ADDR + getNextSPIFlashAddr();
 
@@ -84,6 +102,15 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   char *next = id == 1 ? "user1.bin" : "user2.bin";
   httpdSend(connData, next, -1);
   DBG("Next firmware: %s (got %d)\n", next, id);
+
+  /* the httpd works and a firmeware upgrade would be possible.
+   * So the last upgrade was successful
+   */
+  if (!flashConfig.upgrade_successful) {
+      flashConfig.upgrade_successful = true;
+      configSave();
+  }
+
   return HTTPD_CGI_DONE;
 }
 
@@ -181,11 +208,7 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
 
   // sanity-check that the 'next' partition actually contains something that looks like
   // valid firmware
-  const int address = getNextSPIFlashAddr();
-  uint32 buf[8];
-  DBG("Checking %p\n", (void *)address);
-  spi_flash_read(address, buf, sizeof(buf));
-  char *err = check_header(buf);
+  const char* const err = checkUpgradedFirmware();
   if (err != NULL) {
     DBG("Error %d: %s\n", 400, err);
     httpdStartResponse(connData, 400);
@@ -200,6 +223,13 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
   httpdStartResponse(connData, 200);
   httpdHeader(connData, "Content-Length", "0");
   httpdEndHeaders(connData);
+
+  /* remember that this is the first time booting into the new firmware.
+   * So go back to the old firmware,
+   * if the boot fails.
+   */
+  flashConfig.upgrade_successful = false;
+  configSave();
 
   // Schedule a reboot
   system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
@@ -221,4 +251,51 @@ int ICACHE_FLASH_ATTR cgiReset(HttpdConnData *connData) {
   os_timer_setfn(&flash_reboot_timer, (os_timer_func_t *)system_restart, NULL);
   os_timer_arm(&flash_reboot_timer, 2000, 1);
   return HTTPD_CGI_DONE;
+}
+
+
+static void ICACHE_FLASH_ATTR undoUpgradeIfPossible(void* const timer) {
+  /* remove timer, if called from timer */
+  if (timer != NULL) {
+    os_timer_disarm(timer);
+  }
+
+  /* Do not undo the upgrade, if it boots successfully ones */
+  if (flashConfig.upgrade_successful) {
+      return;
+  }
+
+  /* Do not undo the upgrade, if the old flash is no longer valid.
+   * Because it was possibly already overwritten
+   */
+  if (checkUpgradedFirmware() != NULL) {
+      return;
+  }
+
+  system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
+  system_upgrade_reboot();
+}
+
+int ICACHE_FLASH_ATTR cgiFlashCheckUpgradeHealthy() {
+    /* Do not undo the upgrade, if it boots successfully ones */
+    if (flashConfig.upgrade_successful) {
+        return -1;
+    }
+
+    /* undo upgrade, if the first boot failes
+     * with an watchdog reset, soft watchdog reset or an exception
+     */
+    struct rst_info *rst_info = system_get_rst_info();
+    if (rst_info->reason >= 1 && rst_info->reason <= 3) {
+      undoUpgradeIfPossible(NULL);
+      return 1;
+    }
+
+    /* if the system do not boot vital in 20sec,
+     * try to undo the upgrade
+     */
+    static ETSTimer upgradeFailedTimeout;
+    os_timer_setfn(&upgradeFailedTimeout, undoUpgradeIfPossible, &upgradeFailedTimeout);
+    os_timer_arm(&upgradeFailedTimeout, UPGRADE_FAILED_TIMEOUT * 1000, false);
+    return 2;
 }

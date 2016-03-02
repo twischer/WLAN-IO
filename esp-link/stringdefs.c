@@ -1,3 +1,8 @@
+/*
+ * normal	Reset because of power up/brown out
+ * restart	system_restart was called???
+ * external	External reset pin was toggled
+ */
 const char* const rst_codes[7] = {
   "normal", "wdt reset", "exception", "soft wdt", "restart", "deep sleep", "external",
 };

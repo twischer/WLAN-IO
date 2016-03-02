@@ -3,6 +3,7 @@
 
 #include "httpd.h"
 
+int cgiFlashCheckUpgradeHealthy(void);
 uint32* const getNextFlashAddr(void);
 
 int cgiReadFlash(HttpdConnData *connData);
