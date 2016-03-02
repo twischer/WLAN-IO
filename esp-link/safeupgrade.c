@@ -5,10 +5,15 @@
 /* the timeout which will wait for the wifi flasher response
  * until the upgrade will be undone (in seconds)
  */
-#define UPGRADE_FAILED_TIMEOUT          20
+#define UPGRADE_FAILED_TIMEOUT          30
 
-// TODO only works with 512KB flash
+
+#ifndef BOOTLOADER_CONFIG_ADDR
+#warning Use default bootloader config address for 512KB flash
+/* defaults to 512KB flash */
 #define BOOTLOADER_CONFIG_ADDR  0x7F000
+#endif
+
 
 /* Should be a position which is not used by the 2nd stage bootloader.
  * But it has to be in the same flash block as the bootloader config
