@@ -19,6 +19,7 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "cgi.h"
 #include "cgiflash.h"
 #include "espfs.h"
+#include "safeupgrade.h"
 
 #define SPI_FLASH_MEM_EMU_START_ADDR  0x40200000
 
@@ -58,6 +59,19 @@ static int ICACHE_FLASH_ATTR getNextSPIFlashAddr(void) {
     return address;
 }
 
+const char* const ICACHE_FLASH_ATTR checkUpgradedFirmware()
+{
+    // sanity-check that the 'next' partition actually contains something that looks like
+    // valid firmware
+    const int address = getNextSPIFlashAddr();
+    uint32 buf[8];
+    DBG("Checking %p\n", (void *)address);
+    spi_flash_read(address, buf, sizeof(buf));
+    char *err = check_header(buf);
+
+    return err;
+}
+
 uint32* const ICACHE_FLASH_ATTR getNextFlashAddr(void) {
     const uint32 addr = SPI_FLASH_MEM_EMU_START_ADDR + getNextSPIFlashAddr();
 
@@ -84,6 +98,12 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   char *next = id == 1 ? "user1.bin" : "user2.bin";
   httpdSend(connData, next, -1);
   DBG("Next firmware: %s (got %d)\n", next, id);
+
+  /* the httpd works and a firmeware upgrade would be possible.
+   * So the last upgrade was successful
+   */
+  cgiFlashSetUpgradeSuccessful();
+
   return HTTPD_CGI_DONE;
 }
 
@@ -181,11 +201,7 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
 
   // sanity-check that the 'next' partition actually contains something that looks like
   // valid firmware
-  const int address = getNextSPIFlashAddr();
-  uint32 buf[8];
-  DBG("Checking %p\n", (void *)address);
-  spi_flash_read(address, buf, sizeof(buf));
-  char *err = check_header(buf);
+  const char* const err = checkUpgradedFirmware();
   if (err != NULL) {
     DBG("Error %d: %s\n", 400, err);
     httpdStartResponse(connData, 400);
