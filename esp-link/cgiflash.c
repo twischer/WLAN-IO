@@ -300,10 +300,15 @@ static void ICACHE_FLASH_ATTR undoUpgradeIfPossible(void* const timer) {
   system_upgrade_reboot();
 }
 
+/**
+  -1 downgrade done. Do not execute any user code after this call
+   0 Possibly downgrade needed in the future
+   1 Upgrading was successfully. No downgrade is needed
+  */
 int ICACHE_FLASH_ATTR cgiFlashCheckUpgradeHealthy() {
     /* Do not undo the upgrade, if it boots successfully ones */
     if (cgiFlashIsUpgradeSuccessful()) {
-        return -1;
+        return 1;
     }
 
     /* undo upgrade, if the first boot failes
@@ -311,8 +316,8 @@ int ICACHE_FLASH_ATTR cgiFlashCheckUpgradeHealthy() {
      */
     struct rst_info *rst_info = system_get_rst_info();
     if (rst_info->reason >= 1 && rst_info->reason <= 3) {
-      undoUpgradeIfPossible(NULL);
-      return 1;
+        undoUpgradeIfPossible(NULL);
+        return -1;
     }
 
     /* if the system do not boot vital in 20sec,
@@ -321,5 +326,5 @@ int ICACHE_FLASH_ATTR cgiFlashCheckUpgradeHealthy() {
     static ETSTimer upgradeFailedTimeout;
     os_timer_setfn(&upgradeFailedTimeout, undoUpgradeIfPossible, &upgradeFailedTimeout);
     os_timer_arm(&upgradeFailedTimeout, UPGRADE_FAILED_TIMEOUT * 1000, false);
-    return 2;
+    return 0;
 }

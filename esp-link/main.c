@@ -126,6 +126,11 @@ extern void app_init(void);
 extern void mqtt_client_init(void);
 
 void user_rf_pre_init(void) {
+  /* undo upgrade, if the first boot failes
+   * with an watchdog reset, soft watchdog reset or an exception
+   */
+  cgiFlashCheckUpgradeHealthy();
+
   //default is enabled
   system_set_os_print(DEBUG_SDK);
 }
@@ -135,11 +140,6 @@ void user_init(void) {
   // get the flash config so we know how to init things
   //configWipe(); // uncomment to reset the config for testing purposes
   bool restoreOk = configRestore();
-
-  /* undo upgrade, if the first boot failes
-   * with an watchdog reset, soft watchdog reset or an exception
-   */
-  cgiFlashCheckUpgradeHealthy();
 
   // Init gpio pin registers
   gpio_init();
