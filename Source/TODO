@@ -1,7 +1,13 @@
 pwm aus sdk verwenden
-- gucken ob reset möglich um sync mit zero crossing zu ermöglichen
+- GEHT NICHT da nicht invertieren
 
+Vergleichen welcher der aktuelleste PWM
+dafür alle SDKs herunterladen
+esp 1.4.0 enthält auch kein PWM mehr
 
-os_delay in stdout einfügen, um bussy waiting zu verkleinern
-
-add void system_restore(void); to webinterface
+sync für ZCD mit RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
+	- Damit nur sync, wenn 0 oder 255, andernfalls periode zu lang
+	
+- wenn alle kanäle 0 oder 255 zählerstand vom timer1 (FRC1_COUNT_ADDRESS) überprüfen bei ZCD
+	- sollte kurz vor oder kurz nach überlauf sein
+	- zählt runter
