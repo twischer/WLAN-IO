@@ -169,8 +169,10 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
 
   // erase next flash block if necessary
   if (address % SPI_FLASH_SEC_SIZE == 0){
+#ifdef CGIFLASH_DBG
     const uint8 id = system_upgrade_userbin_check();
     DBG("Flashing 0x%05x (id=%d)\n", address, 2 - id);
+#endif
     spi_flash_erase_sector(address/SPI_FLASH_SEC_SIZE);
   }
 

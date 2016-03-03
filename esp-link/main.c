@@ -63,10 +63,14 @@
 #include "dhtxx_mqtt.h"
 #endif
 
+#ifdef MAIN_NOTICE
 #define NOTICE(format, ...) do {	                                          \
 	LOG_NOTICE(format, ## __VA_ARGS__ );                                      \
 	os_printf(format "\n", ## __VA_ARGS__);                                   \
 } while ( 0 )
+#else
+#define NOTICE(...)
+#endif
 
 /*
 This is the main url->function dispatching data struct.
@@ -202,6 +206,7 @@ void user_init(void) {
   os_timer_arm(&prHeapTimer, 10000, 1);
 #endif
 
+#ifdef MAIN_NOTICE
   struct rst_info *rst_info = system_get_rst_info();
   NOTICE("Reset cause: %d=%s", rst_info->reason, rst_codes[rst_info->reason]);
   NOTICE("exccause=%d epc1=0x%x epc2=0x%x epc3=0x%x excvaddr=0x%x depc=0x%x",
@@ -211,7 +216,8 @@ void user_init(void) {
   NOTICE("Flash map %s, manuf 0x%02lX chip 0x%04lX", flash_maps[system_get_flash_size_map()],
       fid & 0xff, (fid&0xff00)|((fid>>16)&0xff));
   NOTICE("** esp-link ready");
-    
+#endif
+
 #ifdef CGI_ADVANCED
   // Init SNTP service
   cgiServicesSNTPInit();
@@ -226,9 +232,6 @@ void user_init(void) {
   NOTICE("initializing MQTT");
   mqtt_client_init();
 #endif
-  NOTICE("initializing user application");
-  app_init();
-  NOTICE("Waiting for work to do...");
 
 #ifdef ARTNET
   artnet_init();

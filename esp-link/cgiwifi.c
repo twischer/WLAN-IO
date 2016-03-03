@@ -834,9 +834,10 @@ int ICACHE_FLASH_ATTR checkString(char *str){
  *  Call a timer to check the STA connection
  */
 void ICACHE_FLASH_ATTR wifiInit() {
-
+#ifdef CGIWIFI_DBG
     // Check te wifi opmode
     int x = wifi_get_opmode() & 0x3;
+#endif
 
     // Set opmode to 3 to let system scan aps, otherwise it won't scan
     wifi_set_opmode(3);

@@ -26,43 +26,44 @@
 
 
 #undef SHOW_HEAP_USE
-#define DEBUGIP
-#define SDK_DBG
+#undef DEBUGIP
+#undef SDK_DBG
 
 
 /* enables the stdout and prints denug messages */
 //#define DEBUG
 
-#define CMD_DBG
+#undef MAIN_NOTICE
+#undef CMD_DBG
 #undef ESPFS_DBG
 #undef CGI_DBG
-#define CGIFLASH_DBG
-#define CGIMQTT_DBG
-#define CGIPINS_DBG
-#define CGIWIFI_DBG
-#define CONFIG_DBG
-#define LOG_DBG
-#define STATUS_DBG
+#undef CGIFLASH_DBG
+#undef CGIMQTT_DBG
+#undef CGIPINS_DBG
+#undef CGIWIFI_DBG
+#undef CONFIG_DBG
+#undef LOG_DBG
+#undef STATUS_DBG
 #undef HTTPD_DBG
-#define MQTT_DBG
-#define MQTTCMD_DBG
+#undef MQTT_DBG
+#undef MQTTCMD_DBG
 #undef PKTBUF_DBG
-#define REST_DBG
-#define RESTCMD_DBG
-#define SERBR_DBG
-#define SERLED_DBG
-#define SLIP_DBG
-#define UART_DBG
-#define MDNS_DBG
-#define OPTIBOOT_DBG
+#undef REST_DBG
+#undef RESTCMD_DBG
+#undef SERBR_DBG
+#undef SERLED_DBG
+#undef SLIP_DBG
+#undef UART_DBG
+#undef MDNS_DBG
+#undef OPTIBOOT_DBG
 #undef SYSLOG_DBG
 #undef CGISERVICES_DBG
 
 #define ARTNET_LOGL     LOGL_OFF
 #define PWMOUT_LOGL     LOGL_OFF
 #define SLEEP_LOGL      LOGL_OFF
-#define HEATER_LOGL     LOGL_DBG
-#define DHTXX_LOGL      LOGL_DBG
+#define HEATER_LOGL     LOGL_OFF
+#define DHTXX_LOGL      LOGL_OFF
 
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique
