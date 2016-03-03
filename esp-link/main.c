@@ -20,8 +20,6 @@
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"
-#include "status.h"
-#include "serled.h"
 #include "cgiartnet.h"
 #include "config.h"
 #include "gpio.h"
@@ -41,6 +39,7 @@
 
 #ifdef SERIAL_BRIDGE
 #include "serbridge.h"
+#include "serled.h"
 #endif
 
 #ifdef CGI_ADVANCED
@@ -48,6 +47,7 @@
 #include "cgipins.h"
 #include "cgitcp.h"
 #include "cgioptiboot.h"
+#include "status.h"
 #endif
 
 #ifdef ARTNET
@@ -178,9 +178,16 @@ void user_init(void) {
   os_delay_us(10000L);
   os_printf("\n\n** %s\n", esp_link_version);
   os_printf("Flash config restore %s\n", restoreOk ? "ok" : "*FAILED*");
+
+#ifdef CGI_ADVANCED
   // Status LEDs
   statusInit();
+#endif
+
+#ifdef SERIAL_BRIDGE
   serledInit();
+#endif
+
   // Wifi
   wifiInit();
 

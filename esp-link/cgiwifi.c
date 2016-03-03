@@ -16,11 +16,14 @@ Cgi/template routines for the /wifi url.
 #include <esp8266.h>
 #include "cgiwifi.h"
 #include "cgi.h"
-#include "status.h"
 #include "config.h"
 
 #ifdef LOG
 #include "log.h"
+#endif
+
+#ifdef CGI_ADVANCED
+#include "status.h"
 #endif
 
 #ifdef CGIWIFI_DBG
@@ -73,14 +76,18 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
     wifiReason = 0;
     DBG("Wifi connected to ssid %s, ch %d\n", evt->event_info.connected.ssid,
       evt->event_info.connected.channel);
+#ifdef CGI_ADVANCED
     statusWifiUpdate(wifiState);
+#endif
     break;
   case EVENT_STAMODE_DISCONNECTED:
     wifiState = wifiIsDisconnected;
     wifiReason = evt->event_info.disconnected.reason;
     DBG("Wifi disconnected from ssid %s, reason %s (%d)\n",
       evt->event_info.disconnected.ssid, wifiGetReason(), evt->event_info.disconnected.reason);
+#ifdef CGI_ADVANCED
     statusWifiUpdate(wifiState);
+#endif
     break;
   case EVENT_STAMODE_AUTHMODE_CHANGE:
     DBG("Wifi auth mode: %d -> %d\n",
@@ -92,7 +99,9 @@ static void ICACHE_FLASH_ATTR wifiHandleEventCb(System_Event_t *evt) {
     DBG("Wifi got ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR "\n",
       IP2STR(&evt->event_info.got_ip.ip), IP2STR(&evt->event_info.got_ip.mask),
       IP2STR(&evt->event_info.got_ip.gw));
+#ifdef CGI_ADVANCED
     statusWifiUpdate(wifiState);
+#endif
     if (!mdns_started)
       wifiStartMDNS(evt->event_info.got_ip.ip);
     break;

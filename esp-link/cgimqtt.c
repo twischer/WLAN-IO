@@ -12,9 +12,12 @@ char *mqttState(void) {
 #include <esp8266.h>
 #include "cgi.h"
 #include "config.h"
-#include "status.h"
 #include "mqtt_client.h"
 #include "cgimqtt.h"
+
+#ifdef CGI_ADVANCED
+#include "status.h"
+#endif
 
 #ifdef CGIMQTT_DBG
 #define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
@@ -32,7 +35,7 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
   int len;
 
   if (connData->conn==NULL) return HTTPD_CGI_DONE;
-
+#ifdef CGI_ADVANCED
   // get the current status topic for display
   char status_buf1[128], *sb1=status_buf1;
   char status_buf2[128], *sb2=status_buf2;
@@ -46,6 +49,7 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
     *sb2++ = *sb1++;
   }
   *sb2 = 0;
+#endif
 
   len = os_sprintf(buff, "{ "
       "\"slip-enable\":%d, "
@@ -61,7 +65,9 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-username\":\"%s\", "
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
+#ifdef CGI_ADVANCED
       "\"mqtt-status-value\":\"%s\", "
+#endif
       "\"mqtt-heater\":\"%s\", "
       "\"mqtt-temp\":\"%s\", "
       "\"mqtt-humi\":\"%s\" }",
@@ -71,7 +77,10 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, status_buf2,
+      flashConfig.mqtt_status_topic,
+#ifdef CGI_ADVANCED
+      status_buf2,
+#endif
       flashConfig.mqtt_heater, flashConfig.mqtt_temperature,
       flashConfig.mqtt_humidity);
 
