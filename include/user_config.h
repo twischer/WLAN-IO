@@ -74,7 +74,7 @@
 #define LOG_WARN(format, ...) do { } while(0)
 #define LOG_INFO(format, ...) do { } while(0)
 #define LOG_ERR(format, ...) do { } while(0)
-
+#endif
 
 #ifdef DEBUG
 #define LOG(type, logl, fmt, ...) \
