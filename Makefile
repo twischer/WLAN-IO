@@ -218,6 +218,10 @@ ifneq (,$(findstring artnet,$(MODULES)))
 endif
 ifneq (,$(findstring mqtt,$(MODULES)))
 	CFLAGS		+= -DMQTT
+
+	ifneq (,$(findstring cmd,$(MODULES)))
+		MODULES		+= mqtt/cmd
+	endif
 endif
 
 ifneq (,$(findstring rest,$(MODULES)))

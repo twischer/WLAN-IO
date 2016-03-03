@@ -58,15 +58,15 @@ LOCAL void ICACHE_FLASH_ATTR dht22_cb(void *arg)
 		DHTFloat2String(buff, data.temperature);
 
 		PDBG(DHTXX_LOGL, "Temperature: %s *C\r\n", buff);
-        MQTT_Publish(&mqttClient, flashConfig.mqtt_temperature, buff, 0, 1);
+        MQTT_Publish(&mqttClient, flashConfig.mqtt_temperature, buff, strlen(buff), 0, 1);
 
 		DHTFloat2String(buff, data.humidity);
 		PDBG(DHTXX_LOGL, "Humidity: %s %%\r\n", buff);
-        MQTT_Publish(&mqttClient, flashConfig.mqtt_humidity, buff, 0, 1);
+        MQTT_Publish(&mqttClient, flashConfig.mqtt_humidity, buff, strlen(buff), 0, 1);
 	} else {
 		PWRN(DHTXX_LOGL, "Failed to read temperature and humidity sensor");
-        MQTT_Publish(&mqttClient, flashConfig.mqtt_temperature, "0", 0, 1);
-        MQTT_Publish(&mqttClient, flashConfig.mqtt_humidity, "0", 0, 1);
+        MQTT_Publish(&mqttClient, flashConfig.mqtt_temperature, "0", 1, 0, 1);
+        MQTT_Publish(&mqttClient, flashConfig.mqtt_humidity, "0", 1, 0, 1);
 	}
 	os_timer_arm(&dht22_timer, DELAY, 1);
 }
