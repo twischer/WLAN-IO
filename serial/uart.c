@@ -187,7 +187,7 @@ uart0_rx_intr_handler(void *para)
   if (READ_PERI_REG(UART_INT_RAW(uart_no)) & UART_FRM_ERR_INT_RAW) {
     uint32 now = system_get_time();
     if (last_frm_err == 0 || (now - last_frm_err) > one_sec) {
-      os_printf("UART framing error (bad baud rate?)\n");
+      DBG_UART("UART framing error (bad baud rate?)\n");
       last_frm_err = now;
     }
     // clear rx fifo (apparently this is not optional at this point)
@@ -255,7 +255,7 @@ done:
 
 void ICACHE_FLASH_ATTR
 uart0_baud(int rate) {
-  os_printf("UART %d baud\n", rate);
+  DBG_UART("UART %d baud\n", rate);
   uart_div_modify(UART0, UART_CLK_FREQ / rate);
 }
 
@@ -292,7 +292,7 @@ uart_add_recv_cb(UartRecv_cb cb) {
       return;
     }
   }
-  os_printf("UART: max cb count exceeded\n");
+  DBG_UART("UART: max cb count exceeded\n");
 }
 
 void ICACHE_FLASH_ATTR

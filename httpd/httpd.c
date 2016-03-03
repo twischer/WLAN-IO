@@ -390,7 +390,7 @@ static void ICACHE_FLASH_ATTR httpdProcessRequest(HttpdConnData *conn) {
     }
     else {
       if (!(r == HTTPD_CGI_NOTFOUND || r == HTTPD_CGI_AUTHENTICATED)) {
-        os_printf("%shandler for %s returned invalid result %d\n", connStr, conn->url, r);
+        DBG("%shandler for %s returned invalid result %d\n", connStr, conn->url, r);
       }
       //URL doesn't want to handle the request: either the data isn't found or there's no
       //need to generate a login screen.
@@ -564,7 +564,7 @@ static void ICACHE_FLASH_ATTR httpdConnectCb(void *arg) {
   for (i = 0; i<MAX_CONN; i++) if (connData[i].conn == NULL) break;
   //DBG("Con req, conn=%p, pool slot %d\n", conn, i);
   if (i == MAX_CONN) {
-    os_printf("%sHTTP: conn pool overflow!\n", connStr);
+    DBG("%sHTTP: conn pool overflow!\n", connStr);
     espconn_disconnect(conn);
     return;
   }

@@ -20,7 +20,6 @@
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"
-#include "cgiartnet.h"
 #include "config.h"
 #include "gpio.h"
 #include "stringdefs.h"
@@ -52,6 +51,7 @@
 
 #ifdef ARTNET
 #include "artnet.h"
+#include "cgiartnet.h"
 #endif
 #ifdef PWMOUT
 #include "pwm.h"
@@ -165,7 +165,7 @@ void user_init(void) {
 
   // get the flash config so we know how to init things
   //configWipe(); // uncomment to reset the config for testing purposes
-  bool restoreOk = configRestore();
+  const bool restoreOk = configRestore();
   // Init gpio pin registers
   gpio_init();
   gpio_output_set(0, 0, 0, (1<<15)); // some people tie it to GND, gotta ensure it's disabled
@@ -176,8 +176,10 @@ void user_init(void) {
 #endif
   // Say hello (leave some time to cause break in TX after boot loader's msg
   os_delay_us(10000L);
-  os_printf("\n\n** %s\n", esp_link_version);
-  os_printf("Flash config restore %s\n", restoreOk ? "ok" : "*FAILED*");
+  NOTICE("\n\n** %s\n", esp_link_version);
+  NOTICE("Flash config restore %s\n", restoreOk ? "ok" : "*FAILED*");
+  /* resolve compiler errors with disabled NOTICE */
+  (void)restoreOk;
 
 #ifdef CGI_ADVANCED
   // Status LEDs
@@ -198,10 +200,13 @@ void user_init(void) {
 #else
   const EspFsInitResult res = espFsInit(&_binary_espfs_img_start);
 #endif
-  os_printf("espFsInit %s (%u)\n", res?"ERR":"ok", res);
+  NOTICE("espFsInit %s (%u)\n", res?"ERR":"ok", res);
+  /* resolve compiler errors with disabled NOTICE */
+  (void)res;
 
   // mount the http handlers
   httpdInit(builtInUrls, 80);
+
 #ifdef SERIAL_BRIDGE
   // init the wifi-serial transparent bridge (port 23)
   serbridgeInit(23, 2323);

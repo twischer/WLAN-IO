@@ -132,7 +132,9 @@ static int ICACHE_FLASH_ATTR selectPrimary(FlashFull *fc0, FlashFull *fc1);
 bool ICACHE_FLASH_ATTR configRestore(void) {
   FlashFull ff0, ff1;
   if (sizeof(ff0.fc) > sizeof(ff0.block)) {
+#ifdef CONFIG_DBG
 	  os_printf("ERR: Config settings are bigger than the requested flash block\n");
+#endif
 	  return false;
   }
 

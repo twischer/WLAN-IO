@@ -245,7 +245,7 @@ static int ICACHE_FLASH_ATTR cgiWiFiGetScan(HttpdConnData *connData) {
   const int chunk = 1460/64; // ssid is up to 32 chars
   int len = 0;
 
-  os_printf("GET scan: cgiData=%d noAps=%d\n", (int)connData->cgiData, cgiWifiAps.noAps);
+  DBG("GET scan: cgiData=%d noAps=%d\n", (int)connData->cgiData, cgiWifiAps.noAps);
 
   // handle continuation call, connData->cgiData-1 is the position in the scan results where we
   // we need to continue sending from (using -1 'cause 0 means it's the first call)
