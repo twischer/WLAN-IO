@@ -61,14 +61,25 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-username\":\"%s\", "
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
-      "\"mqtt-status-value\":\"%s\" }",
+      "\"mqtt-status-value\":\"%s\", "
+      "\"mqtt-heater\":\"%s\", "
+      "\"mqtt-temp\":\"%s\", "
+      "\"mqtt-humi\":\"%s\" }",
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, status_buf2);
+      flashConfig.mqtt_status_topic, status_buf2,
+      flashConfig.mqtt_heater, flashConfig.mqtt_temperature,
+      flashConfig.mqtt_humidity);
+
+  for (uint8_t i=0; i<PWM_CHANNEL; i++) {
+    len += os_sprintf(&buff[len], ", \"mqtt-pwm%u\":\"%s\"", i, flashConfig.mqtt_pwms[i]);
+  }
+  /* append trailing breaked */
+  len += os_sprintf(&buff[len], " }");
 
   jsonHeader(connData, 200);
   httpdSend(connData, buff, len);
@@ -141,6 +152,29 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
       MQTT_Reconnect(&mqttClient);
     else
       MQTT_Disconnect(&mqttClient);
+  }
+
+
+  static const char mqtt_pwm_template[] = "mqtt-pwm%u";
+  for (uint8_t i=0; i<PWM_CHANNEL; i++) {
+      char name[sizeof(mqtt_pwm_template) + 2];
+      os_sprintf(name, mqtt_pwm_template, i);
+
+      if (getStringArg(connData, name, flashConfig.mqtt_pwms[i], sizeof(flashConfig.mqtt_pwms[i])) < 0) {
+        return HTTPD_CGI_DONE;
+      }
+  }
+
+  if (getStringArg(connData, "mqtt-heater", flashConfig.mqtt_heater, sizeof(flashConfig.mqtt_heater)) < 0) {
+    return HTTPD_CGI_DONE;
+  }
+
+  if (getStringArg(connData, "mqtt-temp", flashConfig.mqtt_temperature, sizeof(flashConfig.mqtt_temperature)) < 0) {
+    return HTTPD_CGI_DONE;
+  }
+
+  if (getStringArg(connData, "mqtt-humi", flashConfig.mqtt_humidity, sizeof(flashConfig.mqtt_humidity)) < 0) {
+    return HTTPD_CGI_DONE;
   }
 
   // no action required if mqtt status settings change, they just get picked up at the

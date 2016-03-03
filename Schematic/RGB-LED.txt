@@ -1,0 +1,7 @@
+
+
+30W RGB-LED (Max 300mA)
+Rot		22,7V	290mA
+Grün	29,6V	290mA
+Blau	30,9V	290mA
+

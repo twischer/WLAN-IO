@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "pwm.h"
+
 // Flash configuration settings. When adding new items always add them at the end and formulate
 // them such that a value of zero is an appropriate default or backwards compatible. Existing
 // modules that are upgraded will have zero in the new fields. This ensures that an upgrade does
@@ -37,6 +39,15 @@ typedef struct {
   uint8_t  mdns_enable;
   char     mdns_servername[32];           
   int8_t   timezone_offset;
+
+  char     mqtt_pwms[PWM_CHANNEL][32];
+  char     mqtt_heater[32];
+  char     mqtt_temperature[32];
+  char     mqtt_humidity[32];
+
+  uint8_t  artnet_subnet;
+  uint8_t  artnet_universe;
+  uint16_t  artnet_pwmstart;
 } FlashConfig;
 extern FlashConfig flashConfig;
 

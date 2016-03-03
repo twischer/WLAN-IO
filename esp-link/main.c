@@ -22,6 +22,7 @@
 #include "uart.h"
 #include "status.h"
 #include "serled.h"
+#include "cgiartnet.h"
 #include "config.h"
 #include "gpio.h"
 #include "stringdefs.h"
@@ -47,6 +48,19 @@
 #include "cgipins.h"
 #include "cgitcp.h"
 #include "cgioptiboot.h"
+#endif
+
+#ifdef ARTNET
+#include "artnet.h"
+#endif
+#ifdef PWMOUT
+#include "pwm.h"
+#endif
+#ifdef HEATER
+#include "heater.h"
+#endif
+#ifdef DHTXX
+#include "dhtxx_mqtt.h"
 #endif
 
 #define NOTICE(format, ...) do {	                                          \
@@ -102,6 +116,9 @@ HttpdBuiltInUrl builtInUrls[] = {
   { "/wifi/special", cgiWiFiSpecial, NULL },
   { "/wifi/apinfo", cgiApSettingsInfo, NULL },
   { "/wifi/apchange", cgiApSettingsChange, NULL },  
+#ifdef ARTNET
+	{"/artnet", cgiArtNet, NULL},
+#endif
 #ifdef MQTT
   { "/mqtt", cgiMqtt, NULL },
 #endif  
@@ -138,6 +155,10 @@ void user_rf_pre_init(void) {
 
 // Main routine to initialize esp-link.
 void user_init(void) {
+#ifdef DEBUG
+    const uint32 time = system_get_time();
+#endif
+
   // get the flash config so we know how to init things
   //configWipe(); // uncomment to reset the config for testing purposes
   bool restoreOk = configRestore();
@@ -195,6 +216,12 @@ void user_init(void) {
   // Init SNTP service
   cgiServicesSNTPInit();
 #endif
+
+#ifdef PWMOUT
+  uint8_t duty[] = {0, 0, 0};
+  pwm_init(100, duty);
+#endif
+
 #ifdef MQTT
   NOTICE("initializing MQTT");
   mqtt_client_init();
@@ -202,4 +229,16 @@ void user_init(void) {
   NOTICE("initializing user application");
   app_init();
   NOTICE("Waiting for work to do...");
+
+#ifdef ARTNET
+  artnet_init();
+#endif
+
+#ifdef HEATER
+  heater_init();
+#endif
+
+#ifdef DHTXX
+  dhtxx_mqtt_init();
+#endif
 }

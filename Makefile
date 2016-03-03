@@ -83,8 +83,10 @@ LED_SERIAL_PIN      ?= 14
 
 # --------------- esp-link modules config options ---------------
 
-# Optional Modules mqtt
+# Optional Modules mqtt pwm artnet heater dhtxx
 #MODULES ?= mqtt rest syslog cmd esp-link/cgiadv esp-link/log serial/console serial/serbridge
+#MODULES ?= mqtt pwm artnet
+MODULES ?= mqtt heater dhtxx
 
 # --------------- esphttpd config options ---------------
 
@@ -208,6 +210,12 @@ APPGEN_TOOL	?= gen_appbin.py
 CFLAGS=
 
 # set defines for optional modules
+ifneq (,$(findstring pwm,$(MODULES)))
+	CFLAGS		+= -DPWMOUT
+endif
+ifneq (,$(findstring artnet,$(MODULES)))
+	CFLAGS		+= -DARTNET
+endif
 ifneq (,$(findstring mqtt,$(MODULES)))
 	CFLAGS		+= -DMQTT
 endif
@@ -215,6 +223,15 @@ endif
 ifneq (,$(findstring rest,$(MODULES)))
 	CFLAGS		+= -DREST
 endif
+
+ifneq (,$(findstring heater,$(MODULES)))
+	CFLAGS		+= -DHEATER
+endif
+
+ifneq (,$(findstring dhtxx,$(MODULES)))
+	CFLAGS		+= -DDHTXX
+endif
+
 
 ifneq (,$(findstring syslog,$(MODULES)))
 	CFLAGS		+= -DSYSLOG

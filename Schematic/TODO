@@ -1,0 +1,36 @@
+Unterputzdose ausmessen aktuelle 50mm vllt auf 60mm erweitern
+- Dann layout flacher indem MOSFET neben netzteil verschieben
+UP 52mm innen
+Kühlkörper: 25x15x11mm loch bei 5,5mm von oben
+
+
+Strom für eingäng von ESP messen und wiederstand für ZCD anpassen
+- Bei 2V genau dieser Strom möglich
+- Nach VCC und GND messen gucken ob unterschied bzw PullUp gesetzt
+DONE: Pull-Up deaktivieren -> Damit nur 50nA -> 1,8MOhm auch noch okay
+
+
+
+Messen wie viel Netzteil im Leerlauf verbraucht
+- Wenn mehr als OpAmp, Netzteil abschalten + PullDowns an EN pins
+- Netzteil verbaucht mehr
+- OpAmp an 12V da 12V aschlaten und extra netzteil für 3V
+- En durch Pull-Down deaktivieren
+	- Gucken, ob ein ESP ausgang irgendwann pull Up aktiviert
+	- Dann pull Down für 30kOhm pullup berechnen
+
+
+Pull Up an FB
+- Diode zwischen FB und OpAmp
+- OpAmp zieht spannung runter
+- Gucken ob bei abgeschaltetem OpAmp keine Verringerung der spannung
+UNNÖTIG da viele andere fehlerquellen möglich
+Um LED zu schützen besser mit extra opamp strom messen und
+mit MOSFET komplet abschlaten, wenn strom überschritten
+
+
+Dioden zwischen PWM outs und Op-Amp Vcc
+Widerstand als verbruacher parallel zu Op-Amp damit StepUp Enable nicht durch pull ups aktiviert wird
+- im Datenblatt EN OFF bis 0,8V
+- Strom von pull up vom ESP und StepUp messen -> PullUp Ohm berechnen
+

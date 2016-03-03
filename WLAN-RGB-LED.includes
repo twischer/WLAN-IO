@@ -1,0 +1,13 @@
+artnet
+debug
+dhtxx
+esp-link
+espfs
+espfs/mkespfsimage/mman-win32
+heater
+httpd
+include
+mqtt
+pwm
+serial
+/opt/esp-open-sdk/sdk/include

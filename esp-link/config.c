@@ -31,6 +31,19 @@ FlashConfig flashDefault = {
   .sntp_server  = "us.pool.ntp.org\0",
   .syslog_host = "\0", .syslog_minheap = 8192, .syslog_filter = 7, .syslog_showtick = 1, .syslog_showdate = 0,
   .mdns_enable = 1, .mdns_servername = "http\0", .timezone_offset = 0
+
+    .mqtt_pwms = {
+        "esp-link/red",
+        "esp-link/green",
+        "esp-link/blue",
+    },
+    .mqtt_heater = "esp-link/heater",
+    .mqtt_temperature = "esp-link/temp",
+    .mqtt_humidity = "esp-link/humi",
+
+    .artnet_subnet = 0,
+    .artnet_universe = 0,
+    .artnet_pwmstart = 1,
 };
 
 typedef union {
@@ -118,6 +131,11 @@ static int ICACHE_FLASH_ATTR selectPrimary(FlashFull *fc0, FlashFull *fc1);
 
 bool ICACHE_FLASH_ATTR configRestore(void) {
   FlashFull ff0, ff1;
+  if (sizeof(ff0.fc) > sizeof(ff0.block)) {
+	  os_printf("ERR: Config settings are bigger than the requested flash block\n");
+	  return false;
+  }
+
   // read both flash sectors
   if (spi_flash_read(flashAddr(), (void *)&ff0, sizeof(ff0)) != SPI_FLASH_RESULT_OK)
     os_memset(&ff0, 0, sizeof(ff0)); // clear in case of error
