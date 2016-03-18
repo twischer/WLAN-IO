@@ -19,6 +19,11 @@ What this means is that we can flash just about anything into partition1 or part
 as it doesn't take more than 236KB and has the right format that the boot loader understands.
 We can't mess with the first 4KB nor the last 16KB of the flash.
 
+SDK v1.5.2 needs 213732 Bytes (0x35000) of the SPI flash without any user code implemantations.
+For system and bootloader parameters 16kB (0x4000) are needed.
+So there leave 0x42000 Bytes (= 0x80000 - 0x01000 - 0x35000 - 0x04000) for user code implemantations and user parameters.
+
+
 Now how does a code partition break down? that is reflected in the following definition found in
 the loader scripts:
 ```
