@@ -130,7 +130,7 @@ ifeq ("$(FLASH_SIZE)","512KB")
 ESP_SPI_SIZE        ?= 0       # 0->512KB (256KB+256KB)
 ESP_FLASH_MODE      ?= 0       # 0->QIO
 ESP_FLASH_FREQ_DIV  ?= 0       # 0->40Mhz
-ESP_FLASH_MAX       ?= 241664  # max bin file for 512KB flash: 236KB
+ESP_FLASH_MAX       ?= 245760  # max bin file for 512KB flash: 240KB with moved user2 ROM
 ET_FS               ?= 4m      # 4Mbit flash size in esptool flash command
 ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
 ET_PART2            ?= 0x40000
