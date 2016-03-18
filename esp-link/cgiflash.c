@@ -21,7 +21,12 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "espfs.h"
 #include "safeupgrade.h"
 
-#define SPI_FLASH_MEM_EMU_START_ADDR  0x40200000
+#define SPI_FLASH_MEM_EMU_START_ADDR    0x40200000
+#define USER1_BIN_SPI_FLASH_ADDR        4*1024                                      // either start after 4KB boot partition
+
+#ifndef USER2_BIN_SPI_FLASH_ADDR
+#define USER2_BIN_SPI_FLASH_ADDR        4*1024 + FIRMWARE_SIZE + 16*1024 + 4*1024   // 4KB boot, fw1, 16KB user param, 4KB reserved
+#endif
 
 #ifdef CGIFLASH_DBG
 #define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
@@ -51,10 +56,24 @@ static bool canOTA(void) {
 
 static char *flash_too_small = "Flash too small for OTA update";
 
-static int ICACHE_FLASH_ATTR getNextSPIFlashAddr(void) {
-    const uint8 id = system_upgrade_userbin_check();
-    const int address = id == 1 ? 4*1024                   // either start after 4KB boot partition
-        : 4*1024 + FIRMWARE_SIZE + 16*1024 + 4*1024; // 4KB boot, fw1, 16KB user param, 4KB reserved
+extern uint32 _irom0_text_start;
+
+static uint8 ICACHE_FLASH_ATTR system_upgrade_enhance_userbin_check()
+{
+    const uint32* const user2_bin_start = (uint32*)(SPI_FLASH_MEM_EMU_START_ADDR + USER2_BIN_SPI_FLASH_ADDR);
+    if (&_irom0_text_start >= user2_bin_start) {
+        /* The currently used IROM section lies behind the user 2 start.
+         * So the current ROM is in user 2
+         */
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+static uint32 ICACHE_FLASH_ATTR getNextSPIFlashAddr(void) {
+    const uint8 id = system_upgrade_enhance_userbin_check();
+    const uint32 address = ( (id == 1) ? USER1_BIN_SPI_FLASH_ADDR : USER2_BIN_SPI_FLASH_ADDR );
 
     return address;
 }
@@ -63,7 +82,7 @@ const char* const ICACHE_FLASH_ATTR checkUpgradedFirmware()
 {
     // sanity-check that the 'next' partition actually contains something that looks like
     // valid firmware
-    const int address = getNextSPIFlashAddr();
+    const uint32 address = getNextSPIFlashAddr();
     uint32 buf[8];
     DBG("Checking %p\n", (void *)address);
     spi_flash_read(address, buf, sizeof(buf));
@@ -90,7 +109,7 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
           return HTTPD_CGI_DONE;
         }
 
-  uint8 id = system_upgrade_userbin_check();
+  const uint8 id = system_upgrade_enhance_userbin_check();
   httpdStartResponse(connData, 200);
   httpdHeader(connData, "Content-Type", "text/plain");
   httpdHeader(connData, "Content-Length", "9");
@@ -164,12 +183,12 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
   }
 
   // let's see which partition we need to flash and what flash address that puts us at
-  int address = getNextSPIFlashAddr();
+  uint32 address = getNextSPIFlashAddr();
   address += offset;
 
   // erase next flash block if necessary
   if (address % SPI_FLASH_SEC_SIZE == 0){
-    const uint8 id = system_upgrade_userbin_check();
+    const uint8 id = system_upgrade_enhance_userbin_check();
     DBG("Flashing 0x%05x (id=%d)\n", address, 2 - id);
     spi_flash_erase_sector(address/SPI_FLASH_SEC_SIZE);
   }
@@ -188,7 +207,15 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
   }
 }
 
+
 static ETSTimer flash_reboot_timer;
+
+static void cgiRebootFirmwareTimer(void *timer_arg)
+{
+    if ( !system_restart_enhance(SYS_BOOT_NORMAL_BIN, getNextSPIFlashAddr())) {
+        DBG("Enhanced reboot failed.\n");
+    }
+}
 
 // Handle request to reboot into the new firmware
 int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
@@ -220,7 +247,7 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
   // Schedule a reboot
   system_upgrade_flag_set(UPGRADE_FLAG_FINISH);
   os_timer_disarm(&flash_reboot_timer);
-  os_timer_setfn(&flash_reboot_timer, (os_timer_func_t *)system_upgrade_reboot, NULL);
+  os_timer_setfn(&flash_reboot_timer, cgiRebootFirmwareTimer, NULL);
   os_timer_arm(&flash_reboot_timer, 2000, 1);
   return HTTPD_CGI_DONE;
 }

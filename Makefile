@@ -133,7 +133,7 @@ ESP_FLASH_FREQ_DIV  ?= 0       # 0->40Mhz
 ESP_FLASH_MAX       ?= 241664  # max bin file for 512KB flash: 236KB
 ET_FS               ?= 4m      # 4Mbit flash size in esptool flash command
 ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
-ET_PART2            ?= 0x41000
+ET_PART2            ?= 0x40000
 ET_BLANK            ?= 0x7E000 # where to flash blank.bin to erase wireless settings
 
 else ifeq ("$(FLASH_SIZE)","1MB")
@@ -255,13 +255,13 @@ CFLAGS	+= -Os -ggdb -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-
 		-D__ets__ -DICACHE_FLASH -D_STDINT_H -Wno-address -DFIRMWARE_SIZE=$(ESP_FLASH_MAX) \
 		-DMCU_RESET_PIN=$(MCU_RESET_PIN) -DMCU_ISP_PIN=$(MCU_ISP_PIN) \
 		-DLED_CONN_PIN=$(LED_CONN_PIN) -DLED_SERIAL_PIN=$(LED_SERIAL_PIN) \
-		-DVERSION="$(VERSION)" -DBOOTLOADER_CONFIG_ADDR="($(BOOTLOADER_CONFIG_ADDR))"
+		-DVERSION="$(VERSION)" -DBOOTLOADER_CONFIG_ADDR="($(BOOTLOADER_CONFIG_ADDR))" \
+		-DUSER2_BIN_SPI_FLASH_ADDR="$(ET_PART2)"
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -Wl,--gc-sections
 
 # linker script used for the above linker step
-LD_SCRIPT 	:= build/eagle.esphttpd.v6.ld
 LD_SCRIPT1	:= build/eagle.esphttpd1.v6.ld
 LD_SCRIPT2	:= build/eagle.esphttpd2.v6.ld
 
@@ -512,12 +512,20 @@ endif
 # in the end the only thing that matters wrt size is that the whole shebang fits into the
 # 236KB available (in a 512KB flash)
 ifeq ("$(FLASH_SIZE)","512KB")
+
+# e.g. 0x41000 -> 41000
+USER2_ADDR := $(subst 0x,,$(ET_PART2))
+# e.g. 41000 -> 41010
+USER2_ROM_ADDR := $(shell expr $(USER2_ADDR) + 10)
+
+
 build/eagle.esphttpd1.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
 			-e '/^  irom0_0_seg/ s/2B000/38000/' \
 			$(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld >$@
 build/eagle.esphttpd2.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app2.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
+			-e '/^  irom0_0_seg/ s/41010/$(USER2_ROM_ADDR)/' \
 			-e '/^  irom0_0_seg/ s/2B000/38000/' \
 			$(SDK_LDDIR)/eagle.app.v6.new.512.app2.ld >$@
 else
