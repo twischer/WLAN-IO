@@ -51,7 +51,7 @@ static uint32_t ICACHE_FLASH_ATTR flashAddr(void) {
   enum flash_size_map map = system_get_flash_size_map();
   return map >= FLASH_SIZE_8M_MAP_512_512
     ? FLASH_SECT + FIRMWARE_SIZE + 2*FLASH_SECT // bootloader + firmware + 8KB free
-    : FLASH_SECT + FIRMWARE_SIZE - 2*FLASH_SECT;// bootloader + firmware - 8KB (risky...)
+    : FLASH_SECT + FIRMWARE_SIZE + FLASH_SECT + FIRMWARE_SIZE; // at the end of both partitions (bootloader + firmware + 4KB free + firmware -> 0x7A000 for 512KB)
 }
 
 static int flash_pri; // primary flash sector (0 or 1, or -1 for error)

@@ -4,12 +4,11 @@ ESP-LINK OTA Flash Layout
 The flash layout dictated by the bootloader is the following (all this assumes a 512KB flash chip
 and is documented in Espressif's `99C-ESP8266__OTA_Upgrade__EN_v1.5.pdf`):
  - @0x00000 4KB 2nd stage bootloader
- - @0x01000 236KB partition1
- - @0x3C000 8KB unused
- - @0x3E000 4KB esp-link parameters
- - @0x3F000 4KB esp-link parameters backup
- - @0x40000 4KB unused
- - @0x41000 236KB partition2
+ - @0x01000 240KB partition1
+ - @0x3D000 4KB unused
+ - @0x3E000 240KB partition2
+ - @0x7A000 4KB esp-link parameters
+ - @0x7B000 4KB esp-link parameters backup
  - @0x7C000 4KB used (possibly bootloader?)
  - @0x7D000 4KB system wifi parameters (ROM1?)
  - @0x7E000 4KB system wifi parameters (ROM2?)

@@ -118,6 +118,16 @@ YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 # which is currently not booted.
 USE_OTHER_PARTITION_FOR_ESPFS ?= yes
 
+# the second partition is used by this external bootloader
+# becasue the wifi bootloader is much smaller,
+# the first partiotion can be some bigger.
+# When activating this option,
+# the esp-link will not build for partition2 and 
+# will not fit into partition2
+USE_EXTERNAL_WIFI_BOOTLOADER ?= yes
+WIFIBOOT_USER2_BIN ?= ../WifiBootloader/firmware/user2.bin
+
+
 # -------------- End of config options -------------
 
 HTML_PATH = $(abspath ./html)/
@@ -130,11 +140,17 @@ ifeq ("$(FLASH_SIZE)","512KB")
 ESP_SPI_SIZE        ?= 0       # 0->512KB (256KB+256KB)
 ESP_FLASH_MODE      ?= 0       # 0->QIO
 ESP_FLASH_FREQ_DIV  ?= 0       # 0->40Mhz
-ESP_FLASH_MAX       ?= 245760  # max bin file for 512KB flash: 240KB with moved user2 ROM
 ET_FS               ?= 4m      # 4Mbit flash size in esptool flash command
 ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
-ET_PART2            ?= 0x40000
 ET_BLANK            ?= 0x7E000 # where to flash blank.bin to erase wireless settings
+
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+ESP_FLASH_MAX       ?= 266240  # max bin file for 512KB flash: 260KB (only the first user bin will be build)
+ET_PART2            ?= 0x42000
+else
+ESP_FLASH_MAX       ?= 245760  # max bin file for 512KB flash: 240KB with moved user2 ROM
+ET_PART2            ?= 0x3E000
+endif
 
 else ifeq ("$(FLASH_SIZE)","1MB")
 # ESP-01E
@@ -367,8 +383,11 @@ endef
 
 .PHONY: all checkdirs clean webpages.espfs wiflash
 
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+all: echo_version checkdirs $(FW_BASE)/user1.bin $(BUILD_BASE)/espfs_img.o
+else
 all: echo_version checkdirs $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin $(BUILD_BASE)/espfs_img.o
-
+endif
 echo_version:
 	@echo VERSION: $(VERSION)
 
@@ -400,6 +419,8 @@ $(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
 	@echo "** user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 
+# only build user2 bin, if the external bootloader should not be placed in the second partition
+ifneq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
 $(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
 	$(Q) $(OBJCP) --only-section .text -O binary $(USER2_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary $(USER2_OUT) eagle.app.v6.data.bin
@@ -409,6 +430,7 @@ $(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
 	$(Q) rm -f eagle.app.v6.*.bin
 	$(Q) mv eagle.app.flash.bin $@
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
+endif
 
 $(APP_AR): $(OBJ)
 	$(vecho) "AR $@"
@@ -420,8 +442,14 @@ $(BUILD_DIR):
 	$(Q) mkdir -p $@
 
 ifeq ("$(USE_OTHER_PARTITION_FOR_ESPFS)","yes")
+ifneq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+wiflash: all
+	./wiflash --force-user1 $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(WIFIBOOT_USER2_BIN) build/espfs.img
+else
 wiflash: all
 	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin build/espfs.img
+endif
+
 else
 wiflash: all
 	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin
