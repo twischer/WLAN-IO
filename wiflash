@@ -17,6 +17,9 @@ Usage: ${0##*/} [-options...] hostname user1.bin user2.bin [espfs.img]
 Flash the esp8266 running esphttpd at <hostname> with either <user1.bin> or <user2.bin>
 depending on its current state. Reboot the esp8266 after flashing and wait for it to come
 up again.
+  -1                    Always flash user1.bin.
+                        If user1 is currently active,
+                        user2 will be flashed firstly and than user1 will be flashed.
   -v                    Be verbose
   -h                    show this help
 
@@ -58,10 +61,12 @@ start=`date +%s`
 
 # ===== Parse arguments
 
+force_user1=
 verbose=
 
-while getopts "hvx:" opt; do
+while getopts "1hvx:" opt; do
   case "$opt" in
+    1) force_user1=1 ;;
     h) show_help; exit 0 ;;
     v) verbose=1 ;;
     x) foo="$OPTARG" ;;
@@ -114,6 +119,8 @@ while true; do
 	user1.bin)
 	  echo "Flashing user1.bin"  >&2
 		fw="$user1"
+		# user1.bin will be flashed now, so nothing to force
+		force_user1=
 		break;;
 	user2.bin)
 	  echo "Flashing user2.bin"  >&2
@@ -140,6 +147,14 @@ curl -m 10 -s "http://$hostname/flash/reboot"
 
 check_response
 
+# if user1.bin was not flashed,
+# it has to be done
+# so recall wiflash script
+if [ -n "$force_user1" ]; then
+	$0 "$user1" "$user2" $espfs
+	# exit here becasue espfs flash was done by the recursive call, if required
+	exit 0
+fi
 
 # everything is done, if no ESP FS image file was spezified
 if [ ! "$espfs" ]; then

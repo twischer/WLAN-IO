@@ -442,9 +442,10 @@ $(BUILD_DIR):
 	$(Q) mkdir -p $@
 
 ifeq ("$(USE_OTHER_PARTITION_FOR_ESPFS)","yes")
-ifneq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
 wiflash: all
-	./wiflash --force-user1 $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(WIFIBOOT_USER2_BIN) build/espfs.img
+	# always force flashing user1.bin
+	./wiflash -1 $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(WIFIBOOT_USER2_BIN) build/espfs.img
 else
 wiflash: all
 	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin build/espfs.img
