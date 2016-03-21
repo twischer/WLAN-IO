@@ -116,7 +116,7 @@ YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 
 # use this option to place the ESP FS image in the other partition of the flash
 # which is currently not booted.
-USE_OTHER_PARTITION_FOR_ESPFS ?= yes
+USE_OTHER_PARTITION_FOR_ESPFS ?= no
 
 # the second partition is used by this external bootloader
 # becasue the wifi bootloader is much smaller,
@@ -145,8 +145,8 @@ ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
 ET_BLANK            ?= 0x7E000 # where to flash blank.bin to erase wireless settings
 
 ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
-ESP_FLASH_MAX       ?= 266240  # max bin file for 512KB flash: 260KB (only the first user bin will be build)
-ET_PART2            ?= 0x42000
+ESP_FLASH_MAX       ?= 274432  # max bin file for 512KB flash: 268KB (only the first user bin will be build)
+ET_PART2            ?= 0x44000
 else
 ESP_FLASH_MAX       ?= 245760  # max bin file for 512KB flash: 240KB with moved user2 ROM
 ET_PART2            ?= 0x3E000
@@ -550,7 +550,7 @@ USER2_ROM_ADDR := $(shell expr $(USER2_ADDR) + 10)
 
 build/eagle.esphttpd1.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
-			-e '/^  irom0_0_seg/ s/2B000/38000/' \
+			-e '/^  irom0_0_seg/ s/2B000/3B000/' \
 			$(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld >$@
 build/eagle.esphttpd2.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app2.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
