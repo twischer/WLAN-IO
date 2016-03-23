@@ -133,6 +133,22 @@ while true; do
 	esac
 done
 
+
+# Reboot into user2.bin without flashing it, if possible
+if [[ $force_user1 == 1 ]]; then
+	sleep 2
+	echo "Try to rebooting into user2.bin..."
+	err=`curl -m 10 -s "http://$hostname/flash/reboot"`
+	# if reboot into user2.bin was successfully flashing directly user1.bin
+	if [ ! "$err" ]; then
+		sleep 5
+		echo "Sucessful rebooted. Flashing user1.bin"
+		$0 $hostname "$user1" "$user2" $espfs
+		exit 0
+	fi
+fi
+
+
 #silent=-s
 [[ -n "$verbose" ]] && silent=
 res=`curl $silent -XPOST --data-binary "@$fw" "http://$hostname/flash/upload"`
@@ -151,6 +167,7 @@ check_response
 # it has to be done
 # so recall wiflash script
 if [ -n "$force_user1" ]; then
+	sleep 2
 	$0 $hostname "$user1" "$user2" $espfs
 	# exit here becasue espfs flash was done by the recursive call, if required
 	exit 0
