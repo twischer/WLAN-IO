@@ -151,7 +151,7 @@ check_response
 # it has to be done
 # so recall wiflash script
 if [ -n "$force_user1" ]; then
-	$0 "$user1" "$user2" $espfs
+	$0 $hostname "$user1" "$user2" $espfs
 	# exit here becasue espfs flash was done by the recursive call, if required
 	exit 0
 fi
