@@ -142,6 +142,7 @@ ESP_FLASH_MODE      ?= 0       # 0->QIO
 ESP_FLASH_FREQ_DIV  ?= 0       # 0->40Mhz
 ET_FS               ?= 4m      # 4Mbit flash size in esptool flash command
 ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
+USER_CONFIG_ADDR    ?= 0x7A000 # bootloader + firmware + 4KB free + firmware
 ET_BLANK            ?= 0x7E000 # where to flash blank.bin to erase wireless settings
 
 ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
@@ -192,7 +193,10 @@ ET_BLANK            ?= 0x3FE000 # where to flash blank.bin to erase wireless set
 endif
 
 
-WIFIBOOT_USER2_BIN ?= ../WifiBootloader/firmware/$(ET_PART2).bin
+WIFIBOOT_USER2_BIN  ?= ../WifiBootloader/firmware/$(ET_PART2).bin
+
+# set default esp-link user config parameters address
+USER_CONFIG_ADDR    ?= (4096 + ESP_FLASH_MAX + 2*4096)
 
 # Calculate the configuration address for the 2nd stage bootloader
 # 512KB flash -> 0x7F000
@@ -275,7 +279,7 @@ CFLAGS	+= -Os -ggdb -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-
 		-DMCU_RESET_PIN=$(MCU_RESET_PIN) -DMCU_ISP_PIN=$(MCU_ISP_PIN) \
 		-DLED_CONN_PIN=$(LED_CONN_PIN) -DLED_SERIAL_PIN=$(LED_SERIAL_PIN) \
 		-DVERSION="$(VERSION)" -DBOOTLOADER_CONFIG_ADDR="($(BOOTLOADER_CONFIG_ADDR))" \
-		-DUSER2_BIN_SPI_FLASH_ADDR="$(ET_PART2)"
+		-DUSER2_BIN_SPI_FLASH_ADDR="$(ET_PART2)" -DUSER_CONFIG_ADDR="$(USER_CONFIG_ADDR)"
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -Wl,--gc-sections
