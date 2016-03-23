@@ -118,7 +118,17 @@ YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 
 # use this option to place the ESP FS image in the other partition of the flash
 # which is currently not booted.
-USE_OTHER_PARTITION_FOR_ESPFS ?= yes
+USE_OTHER_PARTITION_FOR_ESPFS ?= no
+
+
+# the second partition is used by this external bootloader
+# becasue the wifi bootloader is much smaller,
+# the first partiotion can be some bigger.
+# When activating this option,
+# the esp-link will not build for partition2 and 
+# will not fit into partition2
+USE_EXTERNAL_WIFI_BOOTLOADER ?= yes
+
 
 # -------------- End of config options -------------
 
@@ -132,11 +142,18 @@ ifeq ("$(FLASH_SIZE)","512KB")
 ESP_SPI_SIZE        ?= 0       # 0->512KB (256KB+256KB)
 ESP_FLASH_MODE      ?= 0       # 0->QIO
 ESP_FLASH_FREQ_DIV  ?= 0       # 0->40Mhz
-ESP_FLASH_MAX       ?= 241664  # max bin file for 512KB flash: 236KB
 ET_FS               ?= 4m      # 4Mbit flash size in esptool flash command
 ET_FF               ?= 40m     # 40Mhz flash speed in esptool flash command
-ET_PART2            ?= 0x41000
+USER_CONFIG_ADDR    ?= 0x7A000 # bootloader + firmware + 4KB free + firmware
 ET_BLANK            ?= 0x7E000 # where to flash blank.bin to erase wireless settings
+
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+ESP_FLASH_MAX       ?= 274432  # max bin file for 512KB flash: 268KB (only the first user bin will be build)
+ET_PART2            ?= 0x44000
+else
+ESP_FLASH_MAX       ?= 245760  # max bin file for 512KB flash: 240KB with moved user2 ROM
+ET_PART2            ?= 0x3E000
+endif
 
 else ifeq ("$(FLASH_SIZE)","1MB")
 # ESP-01E
@@ -176,6 +193,12 @@ ET_FS               ?= 32m     # 32Mbit flash size in esptool flash command
 ET_FF               ?= 80m     # 80Mhz flash speed in esptool flash command
 ET_BLANK            ?= 0x3FE000 # where to flash blank.bin to erase wireless settings
 endif
+
+
+WIFIBOOT_USER2_BIN  ?= ../WifiBootloader/firmware/$(ET_PART2).bin
+
+# set default esp-link user config parameters address
+USER_CONFIG_ADDR    ?= (4096 + ESP_FLASH_MAX + 2*4096)
 
 # Calculate the configuration address for the 2nd stage bootloader
 # 512KB flash -> 0x7F000
@@ -276,13 +299,13 @@ CFLAGS	+= -Os -ggdb -std=c99 -Werror -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-
 		-D__ets__ -DICACHE_FLASH -D_STDINT_H -Wno-address -DFIRMWARE_SIZE=$(ESP_FLASH_MAX) \
 		-DMCU_RESET_PIN=$(MCU_RESET_PIN) -DMCU_ISP_PIN=$(MCU_ISP_PIN) \
 		-DLED_CONN_PIN=$(LED_CONN_PIN) -DLED_SERIAL_PIN=$(LED_SERIAL_PIN) \
-		-DVERSION="$(VERSION)" -DBOOTLOADER_CONFIG_ADDR="($(BOOTLOADER_CONFIG_ADDR))"
+		-DVERSION="$(VERSION)" -DBOOTLOADER_CONFIG_ADDR="($(BOOTLOADER_CONFIG_ADDR))" \
+		-DUSER2_BIN_SPI_FLASH_ADDR="$(ET_PART2)" -DUSER_CONFIG_ADDR="$(USER_CONFIG_ADDR)"
 
 # linker flags used to generate the main object file
 LDFLAGS		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static -Wl,--gc-sections
 
 # linker script used for the above linker step
-LD_SCRIPT 	:= build/eagle.esphttpd.v6.ld
 LD_SCRIPT1	:= build/eagle.esphttpd1.v6.ld
 LD_SCRIPT2	:= build/eagle.esphttpd2.v6.ld
 
@@ -318,8 +341,8 @@ endif
 
 LIBS		:= $(addprefix -l,$(LIBS))
 APP_AR		:= $(addprefix $(BUILD_BASE)/,$(TARGET)_app.a)
-USER1_OUT 	:= $(addprefix $(BUILD_BASE)/,$(TARGET).user1.out)
-USER2_OUT 	:= $(addprefix $(BUILD_BASE)/,$(TARGET).user2.out)
+USER1_OUT 	:= $(addprefix $(BUILD_BASE)/,$(TARGET).$(ET_PART1).out)
+USER2_OUT 	:= $(addprefix $(BUILD_BASE)/,$(TARGET).$(ET_PART2).out)
 
 INCDIR			:= $(addprefix -I,$(SRC_DIR))
 EXTRA_INCDIR	:= $(addprefix -I,$(EXTRA_INCDIR))
@@ -388,8 +411,11 @@ endef
 
 .PHONY: all checkdirs clean webpages.espfs wiflash
 
-all: echo_version checkdirs $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin $(BUILD_BASE)/espfs_img.o
-
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+all: echo_version checkdirs $(FW_BASE)/$(ET_PART1).bin $(BUILD_BASE)/espfs_img.o
+else
+all: echo_version checkdirs $(FW_BASE)/$(ET_PART1).bin $(FW_BASE)/$(ET_PART2).bin $(BUILD_BASE)/espfs_img.o
+endif
 echo_version:
 	@echo VERSION: $(VERSION)
 
@@ -409,7 +435,7 @@ $(FW_BASE):
 	$(vecho) "FW $@"
 	$(Q) mkdir -p $@
 
-$(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
+$(FW_BASE)/$(ET_PART1).bin: $(USER1_OUT) $(FW_BASE)
 	$(Q) $(OBJCP) --only-section .text -O binary $(USER1_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary $(USER1_OUT) eagle.app.v6.data.bin
 	$(Q) $(OBJCP) --only-section .rodata -O binary $(USER1_OUT) eagle.app.v6.rodata.bin
@@ -421,7 +447,9 @@ $(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
 	@echo "** user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 
-$(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
+# only build user2 bin, if the external bootloader should not be placed in the second partition
+ifneq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+$(FW_BASE)/$(ET_PART2).bin: $(USER2_OUT) $(FW_BASE)
 	$(Q) $(OBJCP) --only-section .text -O binary $(USER2_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary $(USER2_OUT) eagle.app.v6.data.bin
 	$(Q) $(OBJCP) --only-section .rodata -O binary $(USER2_OUT) eagle.app.v6.rodata.bin
@@ -430,6 +458,7 @@ $(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
 	$(Q) rm -f eagle.app.v6.*.bin
 	$(Q) mv eagle.app.flash.bin $@
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
+endif
 
 $(APP_AR): $(OBJ)
 	$(vecho) "AR $@"
@@ -440,30 +469,38 @@ checkdirs: $(BUILD_DIR)
 $(BUILD_DIR):
 	$(Q) mkdir -p $@
 
+
+WIFLASH_LAST_ARG=
 ifeq ("$(USE_OTHER_PARTITION_FOR_ESPFS)","yes")
-wiflash: all
-	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin build/espfs.img
-else
-wiflash: all
-	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin
+WIFLASH_LAST_ARG=  build/espfs.img
 endif
 
+ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")
+wiflash: all
+	# always force flashing user1.bin
+	./wiflash -1 $(ESP_HOSTNAME) $(FW_BASE)/$(ET_PART1).bin $(WIFIBOOT_USER2_BIN) $(WIFLASH_LAST_ARG)
+else
+wiflash: all
+	./wiflash $(ESP_HOSTNAME) $(FW_BASE)/$(ET_PART1).bin $(FW_BASE)/$(ET_PART2).bin $(WIFLASH_LAST_ARG)
+endif
+
+
 baseflash: all
-	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash $(ET_PART1) $(FW_BASE)/user1.bin
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash $(ET_PART1) $(FW_BASE)/$(ET_PART1).bin
 
 
 ifeq ("$(USE_OTHER_PARTITION_FOR_ESPFS)","yes")
 flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
 	  0x00000 "$(SDK_BASE)/bin/boot_v1.5.bin" \
-	  $(ET_PART1) $(FW_BASE)/user1.bin \
+	  $(ET_PART1) $(FW_BASE)/$(ET_PART1).bin \
 	  $(ET_PART2) build/espfs.img \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
 else
 flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
 	  0x00000 "$(SDK_BASE)/bin/boot_v1.5.bin" \
-	  $(ET_PART1) $(FW_BASE)/user1.bin \
+	  $(ET_PART1) $(FW_BASE)/$(ET_PART1).bin \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
 endif
 
@@ -533,12 +570,20 @@ endif
 # in the end the only thing that matters wrt size is that the whole shebang fits into the
 # 236KB available (in a 512KB flash)
 ifeq ("$(FLASH_SIZE)","512KB")
+
+# e.g. 0x41000 -> 41000
+USER2_ADDR := $(subst 0x,,$(ET_PART2))
+# e.g. 41000 -> 41010
+USER2_ROM_ADDR := $(shell expr $(USER2_ADDR) + 10)
+
+
 build/eagle.esphttpd1.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
-			-e '/^  irom0_0_seg/ s/2B000/38000/' \
+			-e '/^  irom0_0_seg/ s/2B000/3B000/' \
 			$(SDK_LDDIR)/eagle.app.v6.new.512.app1.ld >$@
 build/eagle.esphttpd2.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.512.app2.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
+			-e '/^  irom0_0_seg/ s/41010/$(USER2_ROM_ADDR)/' \
 			-e '/^  irom0_0_seg/ s/2B000/38000/' \
 			$(SDK_LDDIR)/eagle.app.v6.new.512.app2.ld >$@
 else
@@ -557,9 +602,9 @@ espfs/mkespfsimage/mkespfsimage: espfs/mkespfsimage/
 
 release: all
 	$(Q) rm -rf release; mkdir -p release/esp-link-$(BRANCH)
-	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/user1.bin | cut -b 1-80
-	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/user2.bin | cut -b 1-80
-	$(Q) cp $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin $(SDK_BASE)/bin/blank.bin \
+	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/$(ET_PART1).bin | cut -b 1-80
+	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/$(ET_PART2).bin | cut -b 1-80
+	$(Q) cp $(FW_BASE)/$(ET_PART1).bin $(FW_BASE)/$(ET_PART2).bin $(SDK_BASE)/bin/blank.bin \
 		   "$(SDK_BASE)/bin/boot_v1.5.bin" wiflash avrflash release/esp-link-$(BRANCH)
 	$(Q) tar zcf esp-link-$(BRANCH).tgz -C release esp-link-$(BRANCH)
 	$(Q) echo "Release file: esp-link-$(BRANCH).tgz"

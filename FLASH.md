@@ -3,16 +3,25 @@ ESP-LINK OTA Flash Layout
 
 The flash layout dictated by the bootloader is the following (all this assumes a 512KB flash chip
 and is documented in Espressif's `99C-ESP8266__OTA_Upgrade__EN_v1.5.pdf`):
- - @0x00000 4KB bootloader
- - @0x01000 236KB partition1
- - @0x3E000 16KB esp-link parameters
- - @0x40000 4KB unused
- - @0x41000 236KB partition2
- - @0x7E000 16KB system wifi parameters
+ - @0x00000 4KB 2nd stage bootloader
+ - @0x01000 240KB partition1
+ - @0x3D000 4KB unused
+ - @0x3E000 240KB partition2
+ - @0x7A000 4KB esp-link parameters
+ - @0x7B000 4KB esp-link parameters backup
+ - @0x7C000 4KB used (possibly bootloader?)
+ - @0x7D000 4KB system wifi parameters (ROM1?)
+ - @0x7E000 4KB system wifi parameters (ROM2?)
+ - @0x7F000 4KB 2nd stage bootloader parameters
 
 What this means is that we can flash just about anything into partition1 or partition2 as long
 as it doesn't take more than 236KB and has the right format that the boot loader understands.
 We can't mess with the first 4KB nor the last 16KB of the flash.
+
+SDK v1.5.2 needs 213732 Bytes (0x35000) of the SPI flash without any user code implemantations.
+For system and bootloader parameters 16kB (0x4000) are needed.
+So there leave 0x42000 Bytes (= 0x80000 - 0x01000 - 0x35000 - 0x04000) for user code implemantations and user parameters.
+
 
 Now how does a code partition break down? that is reflected in the following definition found in
 the loader scripts:
