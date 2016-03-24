@@ -84,9 +84,9 @@ LED_SERIAL_PIN      ?= 14
 # --------------- esp-link modules config options ---------------
 
 # Optional Modules mqtt pwm artnet heater dhtxx
-#MODULES ?= mqtt rest syslog cmd esp-link/cgiadv esp-link/log serial/console serial/serbridge
-#MODULES ?= mqtt pwm artnet
-MODULES ?= mqtt heater dhtxx
+#MODULES ?= io/mqtt io/rest syslog cmd esp-link/cgiadv esp-link/log serial/console serial/serbridge
+#MODULES ?= io/mqtt io/pwm io/artnet
+MODULES ?= io/mqtt io/heater io/dhtxx
 
 # --------------- esphttpd config options ---------------
 
