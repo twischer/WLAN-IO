@@ -14,7 +14,6 @@
 #include "httpdespfs.h"
 #include "cgi.h"
 #include "cgiwifi.h"
-#include "cgimqtt.h"
 #include "cgiflash.h"
 #include "safeupgrade.h"
 #include "auth.h"
@@ -49,6 +48,9 @@
 #include "status.h"
 #endif
 
+#ifdef MQTT
+#include "cgimqtt.h"
+#endif
 #ifdef ARTNET
 #include "artnet.h"
 #include "cgiartnet.h"
