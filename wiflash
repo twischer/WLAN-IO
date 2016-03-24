@@ -25,6 +25,7 @@ up again.
 
 Example: ${0##*/} -v esp8266 firmware/user1.bin firmware/user2.bin
          ${0##*/} 192.168.4.1 firmware/user1.bin firmware/user2.bin
+         ${0##*/} 192.168.4.1 build/espfs.img
 EOT
 }
 
@@ -50,6 +51,31 @@ check_response() {
 		sleep 1
 	done
 }
+
+
+flashing_espfs() {
+	espfs_file=$1
+	
+	if [[ ! -r "$espfs_file" ]]; then
+		echo "ERROR: cannot read ESP FS image file ($espfs_file)" >&2
+		exit 1
+	fi
+
+	echo "Uploading ESP FS image" >&2
+	res=`curl $silent -XPOST --data-binary "@$espfs_file" "http://$hostname/flash/upload"`
+	if [[ $? != 0 ]]; then
+		echo "Error uploading $espfs_file" >&2
+		exit 1
+	fi
+
+
+	sleep 2
+	echo "Reseting to load new ESP FS image" >&2
+	curl -m 10 -s "http://$hostname/log/reset"
+
+	check_response
+}
+
 
 
 if ! which curl >/dev/null; then
@@ -78,15 +104,26 @@ done
 shift "$((OPTIND-1))"
 
 # Get the fixed arguments
-# only 3 or 4 are accepted
-if [[ $# < 3 || $# > 4 ]]; then
+# only 2 till 4 are accepted
+if [[ $# < 2 || $# > 4 ]]; then
 	show_help >&2
 	exit 1
 fi
+
 hostname=$1
 user1=$2
 user2=$3
 espfs=$4
+
+# if only one binary file is given
+# flash it to the other partition and
+# reboot the original partition
+# useful for updating ESP FS
+if [[ $# == 2 ]]; then
+	flashing_espfs $2
+	exit 0
+fi
+
 
 re='[-A-Za-z0-9.]+'
 if [[ ! "$hostname" =~ $re ]]; then
@@ -178,21 +215,4 @@ if [ ! "$espfs" ]; then
 	exit 0
 fi
 
-if [[ ! -r "$espfs" ]]; then
-	echo "ERROR: cannot read ESP FS image file ($espfs)" >&2
-	exit 1
-fi
-
-echo "Uploading ESP FS image" >&2
-res=`curl $silent -XPOST --data-binary "@$espfs" "http://$hostname/flash/upload"`
-if [[ $? != 0 ]]; then
-	echo "Error uploading $espfs" >&2
-	exit 1
-fi
-
-
-sleep 2
-echo "Reseting to load new ESP FS image" >&2
-curl -m 10 -s "http://$hostname/log/reset"
-
-check_response
+flashing_espfs $espfs

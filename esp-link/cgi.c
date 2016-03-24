@@ -36,7 +36,7 @@ void ICACHE_FLASH_ATTR jsonHeader(HttpdConnData *connData, int code) {
   httpdEndHeaders(connData);
 }
 
-void ICACHE_FLASH_ATTR errorResponse(HttpdConnData *connData, int code, char *message) {
+void ICACHE_FLASH_ATTR errorResponse(HttpdConnData *connData, int code, const char* const message) {
   noCacheHeaders(connData, code);
   httpdEndHeaders(connData);
   httpdSend(connData, message, -1);

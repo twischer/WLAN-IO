@@ -17,3 +17,4 @@ serial
 serial/console
 serial/serbridge
 syslog
+/opt/esp-open-sdk/sdk/include

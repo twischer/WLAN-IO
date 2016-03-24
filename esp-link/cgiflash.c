@@ -54,7 +54,8 @@ static bool canOTA(void) {
         return map >= FLASH_SIZE_4M_MAP_256_256;
 }
 
-static char *flash_too_small = "Flash too small for OTA update";
+static const char* const flash_too_small = "Flash too small for OTA update";
+static const char* const waiting_for_reboot = "Not available. Waiting for reboot.";
 
 extern uint32 _irom0_text_start;
 
@@ -126,9 +127,18 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   return HTTPD_CGI_DONE;
 }
 
+static ETSTimer flash_reboot_timer = { NULL, 0, 0, NULL, NULL };
+
+
 //===== Cgi that allows the firmware to be replaced via http POST
 int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
   if (connData->conn==NULL) return HTTPD_CGI_DONE; // Connection aborted. Clean up.
+
+  /* do not start flashing, if an reboot request was enqueued */
+  if (flash_reboot_timer.timer_func != NULL) {
+      errorResponse(connData, 400, waiting_for_reboot);
+      return HTTPD_CGI_DONE;
+  }
 
         if (!canOTA()) {
           errorResponse(connData, 400, flash_too_small);
@@ -210,8 +220,6 @@ int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData) {
 }
 
 
-static ETSTimer flash_reboot_timer;
-
 static void cgiRebootFirmwareTimer(void *timer_arg)
 {
     if ( !system_restart_enhance(SYS_BOOT_NORMAL_BIN, getNextSPIFlashAddr())) {
@@ -222,6 +230,12 @@ static void cgiRebootFirmwareTimer(void *timer_arg)
 // Handle request to reboot into the new firmware
 int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
   if (connData->conn==NULL) return HTTPD_CGI_DONE; // Connection aborted. Clean up.
+
+  /* do not rebooting into new firmware, if an reboot or reset request was enqueued */
+  if (flash_reboot_timer.timer_func != NULL) {
+      errorResponse(connData, 400, waiting_for_reboot);
+      return HTTPD_CGI_DONE;
+  }
 
   if (!canOTA()) {
     errorResponse(connData, 400, flash_too_small);
@@ -256,6 +270,12 @@ int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData) {
 
 int ICACHE_FLASH_ATTR cgiReset(HttpdConnData *connData) {
   if (connData->conn == NULL) return HTTPD_CGI_DONE; // Connection aborted. Clean up.
+
+  /* do not rebooting into new firmware, if an reboot or reset request was enqueued */
+  if (flash_reboot_timer.timer_func != NULL) {
+      errorResponse(connData, 400, waiting_for_reboot);
+      return HTTPD_CGI_DONE;
+  }
 
   httpdStartResponse(connData, 200);
   httpdHeader(connData, "Content-Length", "0");

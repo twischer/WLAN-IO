@@ -46,7 +46,7 @@
 CHANGE_TO_STA ?= yes
 
 # hostname or IP address for wifi flashing
-ESP_HOSTNAME        ?= esp-link
+ESP_HOSTNAME        ?= 192.168.4.1
 
 # --------------- toolchain configuration ---------------
 
@@ -472,7 +472,10 @@ $(BUILD_DIR):
 
 WIFLASH_LAST_ARG=
 ifeq ("$(USE_OTHER_PARTITION_FOR_ESPFS)","yes")
-WIFLASH_LAST_ARG=  build/espfs.img
+WIFLASH_LAST_ARG= build/espfs.img
+
+wiflashfs: $(BUILD_BASE)/espfs_img.o
+	./wiflash $(ESP_HOSTNAME) $(WIFLASH_LAST_ARG)
 endif
 
 ifeq ("$(USE_EXTERNAL_WIFI_BOOTLOADER)","yes")

@@ -6,7 +6,7 @@
 
 void noCacheHeaders(HttpdConnData *connData, int code);
 void jsonHeader(HttpdConnData *connData, int code);
-void errorResponse(HttpdConnData *connData, int code, char *message);
+void errorResponse(HttpdConnData *connData, int code, const char* const message);
 
 // Get the HTTP query-string param 'name' and store it at 'config' with max length
 // 'max_len' (incl terminating zero), returns -1 on error, 0 if not found, 1 if found
