@@ -70,7 +70,7 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
 #endif
       "\"mqtt-heater\":\"%s\", "
       "\"mqtt-temp\":\"%s\", "
-      "\"mqtt-humi\":\"%s\" }",
+      "\"mqtt-humi\":\"%s\"",
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
