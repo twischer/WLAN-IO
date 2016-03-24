@@ -128,7 +128,7 @@ ajaxLog(HttpdConnData *connData) {
   return HTTPD_CGI_DONE;
 }
 
-static char *dbg_mode[] = { "auto", "off", "on0", "on1" };
+static const char* const dbg_mode[] = { "auto", "off", "on0", "on1" };
 
 int ICACHE_FLASH_ATTR
 ajaxLogDbg(HttpdConnData *connData) {
@@ -137,16 +137,14 @@ ajaxLogDbg(HttpdConnData *connData) {
   int len, status = 400;
   len = httpdFindArg(connData->getArgs, "mode", buff, sizeof(buff));
   if (len > 0) {
-    int8_t mode = -1;
-    if (os_strcmp(buff, "auto") == 0)  mode = LOG_MODE_AUTO;
-    if (os_strcmp(buff, "off") == 0)   mode = LOG_MODE_OFF;
-    if (os_strcmp(buff, "on0") == 0) mode = LOG_MODE_ON0;
-    if (os_strcmp(buff, "on1") == 0) mode = LOG_MODE_ON1;
-    if (mode >= 0) {
-      flashConfig.log_mode = mode;
-      if (mode != LOG_MODE_AUTO) log_uart(mode >= LOG_MODE_ON0);
-      status = configSave() ? 200 : 400;
-    }
+	for (uint8 mode=0; mode<sizeof(dbg_mode)/sizeof(dbg_mode[0]); mode++) {
+		if (os_strcmp(buff, dbg_mode[mode]) == 0) {
+			flashConfig.log_mode = mode;
+			if (mode != LOG_MODE_AUTO) log_uart(mode >= LOG_MODE_ON0);
+			status = configSave() ? 200 : 400;
+			break;
+		}
+	}
   } else if (connData->requestType == HTTPD_METHOD_GET) {
     status = 200;
   }
@@ -157,6 +155,7 @@ ajaxLogDbg(HttpdConnData *connData) {
   return HTTPD_CGI_DONE;
 }
 
+#ifdef LOG_DBG
 void ICACHE_FLASH_ATTR dumpMem(void *addr, int len) {
   uint8_t *a = addr;
   int off = 0;
@@ -171,6 +170,7 @@ void ICACHE_FLASH_ATTR dumpMem(void *addr, int len) {
     os_printf("\n");
   }
 }
+#endif
 
 void ICACHE_FLASH_ATTR logInit() {
   log_no_uart = flashConfig.log_mode == LOG_MODE_OFF; // ON unless set to always-off
