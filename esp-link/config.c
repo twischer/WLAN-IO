@@ -9,19 +9,28 @@
 
 FlashConfig flashConfig;
 FlashConfig flashDefault = {
-  33, 0, 0,
-  MCU_RESET_PIN, MCU_ISP_PIN, LED_CONN_PIN, LED_SERIAL_PIN,
-  115200,
-  "esp-link\0",                        // hostname
-  0, 0x00ffffff, 0,                    // static ip, netmask, gateway
-  0,                                   // log mode
-  0,                                   // swap uart (don't by default)
-  1, 0,                                // tcp_enable, rssi_enable
-  "\0",                                // api_key
-  0, 0, 0,                             // slip_enable, mqtt_enable, mqtt_status_enable
-  2, 1,                                // mqtt_timeout, mqtt_clean_session
-  1883, 60,                            // mqtt port, mqtt_keepalive
-  "\0", "\0", "\0", "\0", "\0",        // mqtt host, client_id, user, password, status-topic
+  .seq = 33, .magic = 0, .crc = 0,
+  .reset_pin    = MCU_RESET_PIN, .isp_pin = MCU_ISP_PIN,
+  .conn_led_pin = LED_CONN_PIN, .ser_led_pin = LED_SERIAL_PIN,
+  .baud_rate    = 115200,
+  .hostname     = "esp-link\0",
+  .staticip     = 0,
+  .netmask      = 0x00ffffff,
+  .gateway      = 0,
+  .log_mode     = 0,
+  .swap_uart    = 0,
+  .tcp_enable   = 1, .rssi_enable = 0,
+  .api_key      = "",
+  .slip_enable  = 0, .mqtt_enable = 0, .mqtt_status_enable = 0,
+  .mqtt_timeout = 2, .mqtt_clean_session = 1,
+  .mqtt_port    = 1883, .mqtt_keepalive = 60,
+  .mqtt_host    = "\0", .mqtt_clientid = "\0",
+  .mqtt_username= "\0", .mqtt_password = "\0", .mqtt_status_topic = "\0",
+  .sys_descr 	  = "\0",
+  .rx_pullup	  = 1,  
+  .sntp_server  = "us.pool.ntp.org\0",
+  .syslog_host = "\0", .syslog_minheap = 8192, .syslog_filter = 7, .syslog_showtick = 1, .syslog_showdate = 0,
+  .mdns_enable = 1, .mdns_servername = "http\0", .timezone_offset = 0,
 
     .mqtt_pwms = {
         "esp-link/red",
@@ -48,9 +57,12 @@ typedef union {
 // size of the setting sector
 #define FLASH_SECT   (4096)
 
-// address where to flash the settings: there are 16KB of reserved space at the end of the first
-// flash partition, we use the upper 8KB (2 sectors)
-#define FLASH_ADDR   (FLASH_SECT + FIRMWARE_SIZE + 2*FLASH_SECT)
+// address where to flash the settings: if we have >512KB flash then there are 16KB of reserved
+// space at the end of the first flash partition, we use the upper 8KB (2 sectors). If we only
+// have 512KB then that space is used by the SDK and we use the 8KB just before that.
+static uint32_t ICACHE_FLASH_ATTR flashAddr(void) {
+    return USER_CONFIG_ADDR;
+}
 
 static int flash_pri; // primary flash sector (0 or 1, or -1 for error)
 
@@ -69,7 +81,7 @@ bool ICACHE_FLASH_ATTR configSave(void) {
   os_memcpy(&ff, &flashConfig, sizeof(FlashConfig));
   uint32_t seq = ff.fc.seq+1;
   // erase secondary
-  uint32_t addr = FLASH_ADDR + (1-flash_pri)*FLASH_SECT;
+  uint32_t addr = flashAddr() + (1-flash_pri)*FLASH_SECT;
   if (spi_flash_erase_sector(addr>>12) != SPI_FLASH_RESULT_OK)
     goto fail; // no harm done, give up
   // calculate CRC
@@ -89,7 +101,7 @@ bool ICACHE_FLASH_ATTR configSave(void) {
   if (spi_flash_write(addr, (void *)&ff, sizeof(uint32_t)) != SPI_FLASH_RESULT_OK)
     goto fail; // most likely failed, but no harm if successful
   // now that we have safely written the new version, erase old primary
-  addr = FLASH_ADDR + flash_pri*FLASH_SECT;
+  addr = flashAddr() + flash_pri*FLASH_SECT;
   flash_pri = 1-flash_pri;
   if (spi_flash_erase_sector(addr>>12) != SPI_FLASH_RESULT_OK)
     return true; // no back-up but we're OK
@@ -108,8 +120,8 @@ fail:
 }
 
 void ICACHE_FLASH_ATTR configWipe(void) {
-  spi_flash_erase_sector(FLASH_ADDR>>12);
-  spi_flash_erase_sector((FLASH_ADDR+FLASH_SECT)>>12);
+  spi_flash_erase_sector(flashAddr()>>12);
+  spi_flash_erase_sector((flashAddr()+FLASH_SECT)>>12);
 }
 
 static int ICACHE_FLASH_ATTR selectPrimary(FlashFull *fc0, FlashFull *fc1);
@@ -117,14 +129,16 @@ static int ICACHE_FLASH_ATTR selectPrimary(FlashFull *fc0, FlashFull *fc1);
 bool ICACHE_FLASH_ATTR configRestore(void) {
   FlashFull ff0, ff1;
   if (sizeof(ff0.fc) > sizeof(ff0.block)) {
+#ifdef CONFIG_DBG
 	  os_printf("ERR: Config settings are bigger than the requested flash block\n");
+#endif
 	  return false;
   }
 
   // read both flash sectors
-  if (spi_flash_read(FLASH_ADDR, (void *)&ff0, sizeof(ff0)) != SPI_FLASH_RESULT_OK)
+  if (spi_flash_read(flashAddr(), (void *)&ff0, sizeof(ff0)) != SPI_FLASH_RESULT_OK)
     os_memset(&ff0, 0, sizeof(ff0)); // clear in case of error
-  if (spi_flash_read(FLASH_ADDR+FLASH_SECT, (void *)&ff1, sizeof(ff1)) != SPI_FLASH_RESULT_OK)
+  if (spi_flash_read(flashAddr()+FLASH_SECT, (void *)&ff1, sizeof(ff1)) != SPI_FLASH_RESULT_OK)
     os_memset(&ff1, 0, sizeof(ff1)); // clear in case of error
   // figure out which one is good
   flash_pri = selectPrimary(&ff0, &ff1);

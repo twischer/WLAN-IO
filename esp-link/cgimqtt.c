@@ -1,14 +1,33 @@
 // Copyright 2015 by Thorsten von Eicken, see LICENSE.txt
-#ifdef MQTT
+
+static char *mqtt_states[] = {
+  "disconnected", "reconnecting", "connecting", "connected", "disabled"
+};
+
+#if !defined(MQTT)
+char *mqttState(void) {
+  return mqtt_states[4];
+}
+#else
 #include <esp8266.h>
 #include "cgi.h"
 #include "config.h"
 #include "mqtt_client.h"
 #include "cgimqtt.h"
 
-static const char* const mqtt_states[] = {
-  "disconnected", "reconnecting", "connecting", "connected",
-};
+#ifdef CGI_ADVANCED
+#include "status.h"
+#endif
+
+#ifdef CGIMQTT_DBG
+#define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
+#else
+#define DBG(format, ...) do { } while(0)
+#endif
+
+char *mqttState(void) {
+  return mqtt_states[mqttClient.connState];
+}
 
 // Cgi to return MQTT settings
 int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
@@ -16,6 +35,21 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
   int len;
 
   if (connData->conn==NULL) return HTTPD_CGI_DONE;
+#ifdef CGI_ADVANCED
+  // get the current status topic for display
+  char status_buf1[128], *sb1=status_buf1;
+  char status_buf2[128], *sb2=status_buf2;
+  mqttStatusMsg(status_buf1);
+  // quote all " for the json, sigh...
+  for (int i=0; i<127 && *sb1; i++) {
+    if (*sb1 == '"') {
+      *sb2++ = '\\';
+      i++;
+    }
+    *sb2++ = *sb1++;
+  }
+  *sb2 = 0;
+#endif
 
   len = os_sprintf(buff, "{ "
       "\"slip-enable\":%d, "
@@ -31,17 +65,22 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
       "\"mqtt-username\":\"%s\", "
       "\"mqtt-password\":\"%s\", "
       "\"mqtt-status-topic\":\"%s\", "
+#ifdef CGI_ADVANCED
       "\"mqtt-status-value\":\"%s\", "
+#endif
       "\"mqtt-heater\":\"%s\", "
       "\"mqtt-temp\":\"%s\", "
-      "\"mqtt-humi\":\"%s\"",
+      "\"mqtt-humi\":\"%s\" }",
       flashConfig.slip_enable, flashConfig.mqtt_enable,
       mqtt_states[mqttClient.connState], flashConfig.mqtt_status_enable,
       flashConfig.mqtt_clean_session, flashConfig.mqtt_port,
       flashConfig.mqtt_timeout, flashConfig.mqtt_keepalive,
       flashConfig.mqtt_host, flashConfig.mqtt_clientid,
       flashConfig.mqtt_username, flashConfig.mqtt_password,
-      flashConfig.mqtt_status_topic, "unkown",
+      flashConfig.mqtt_status_topic,
+#ifdef CGI_ADVANCED
+      status_buf2,
+#endif
       flashConfig.mqtt_heater, flashConfig.mqtt_temperature,
       flashConfig.mqtt_humidity);
 
@@ -56,7 +95,6 @@ int ICACHE_FLASH_ATTR cgiMqttGet(HttpdConnData *connData) {
   return HTTPD_CGI_DONE;
 }
 
-// Cgi to change choice of pin assignments
 int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
   if (connData->conn==NULL) return HTTPD_CGI_DONE;
 
@@ -77,11 +115,11 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
 
   if (mqtt_server < 0) return HTTPD_CGI_DONE;
   mqtt_server |= getBoolArg(connData, "mqtt-clean-session",
-	  (bool*)&flashConfig.mqtt_clean_session);
+      (bool*)&flashConfig.mqtt_clean_session);
 
   if (mqtt_server < 0) return HTTPD_CGI_DONE;
   int8_t mqtt_en_chg = getBoolArg(connData, "mqtt-enable",
-	  (bool*)&flashConfig.mqtt_enable);
+      (bool*)&flashConfig.mqtt_enable);
 
   char buff[16];
 
@@ -111,17 +149,14 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
 
   // if server setting changed, we need to "make it so"
   if (mqtt_server) {
-#ifdef CGIMQTT_DBG
-    os_printf("MQTT server settings changed, enable=%d\n", flashConfig.mqtt_enable);
-#endif
+    DBG("MQTT server settings changed, enable=%d\n", flashConfig.mqtt_enable);
     MQTT_Free(&mqttClient); // safe even if not connected
     mqtt_client_init();
 
   // if just enable changed we just need to bounce the client
-  } else if (mqtt_en_chg > 0) {
-#ifdef CGIMQTT_DBG
-    os_printf("MQTT server enable=%d changed\n", flashConfig.mqtt_enable);
-#endif
+  } 
+  else if (mqtt_en_chg > 0) {
+    DBG("MQTT server enable=%d changed\n", flashConfig.mqtt_enable);
     if (flashConfig.mqtt_enable && strlen(flashConfig.mqtt_host) > 0)
       MQTT_Reconnect(&mqttClient);
     else
@@ -162,11 +197,11 @@ int ICACHE_FLASH_ATTR cgiMqttSet(HttpdConnData *connData) {
   // if SLIP-enable is toggled it gets picked-up immediately by the parser
   int slip_update = getBoolArg(connData, "slip-enable", (bool*)&flashConfig.slip_enable);
   if (slip_update < 0) return HTTPD_CGI_DONE;
-#ifdef CGIMQTT_DBG
-  if (slip_update > 0) os_printf("SLIP-enable changed: %d\n", flashConfig.slip_enable);
+  if (slip_update > 0) 
+    DBG("SLIP-enable changed: %d\n", flashConfig.slip_enable);
 
-  os_printf("Saving config\n");
-#endif
+  DBG("Saving config\n");
+
   if (configSave()) {
     httpdStartResponse(connData, 200);
     httpdEndHeaders(connData);
@@ -188,4 +223,4 @@ int ICACHE_FLASH_ATTR cgiMqtt(HttpdConnData *connData) {
     return HTTPD_CGI_DONE;
   }
 }
-#endif // MQTT
+#endif

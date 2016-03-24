@@ -18,6 +18,7 @@
  * Heavily modified and enhanced by Thorsten von Eicken in 2015
  */
 #include "esp8266.h"
+#include "task.h"
 #include "uart.h"
 
 #ifdef UART_DBG
@@ -26,14 +27,10 @@
 #define DBG_UART(format, ...) do { } while(0)
 #endif
 
-#define recvTaskPrio        1
-#define recvTaskQueueLen    64
+LOCAL uint8_t uart_recvTaskNum;
 
 // UartDev is defined and initialized in rom code.
 extern UartDevice    UartDev;
-
-os_event_t    recvTaskQueue[recvTaskQueueLen];
-
 #define MAX_CB 4
 static UartRecv_cb uart_recv_cb[4];
 
@@ -52,17 +49,14 @@ uart_config(uint8 uart_no)
 {
   if (uart_no == UART1) {
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO2_U, FUNC_U1TXD_BK);
-    //PIN_PULLDWN_DIS(PERIPHS_IO_MUX_GPIO2_U);
     PIN_PULLUP_DIS(PERIPHS_IO_MUX_GPIO2_U);
   } else {
     /* rcv_buff size is 0x100 */
     ETS_UART_INTR_ATTACH(uart0_rx_intr_handler,  &(UartDev.rcv_buff));
-    PIN_PULLUP_DIS (PERIPHS_IO_MUX_U0TXD_U);
-    //PIN_PULLDWN_DIS(PERIPHS_IO_MUX_U0TXD_U);
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0TXD_U, FUNC_U0TXD);
-    PIN_PULLUP_DIS (PERIPHS_IO_MUX_U0RXD_U);
-    //PIN_PULLDWN_DIS(PERIPHS_IO_MUX_U0RXD_U);
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_U0RXD_U, 0); // FUNC_U0RXD==0
+    //PIN_PULLUP_DIS (PERIPHS_IO_MUX_U0TXD_U); now done in serbridgeInitPins
+    //PIN_PULLUP_DIS (PERIPHS_IO_MUX_U0RXD_U);
   }
 
   uart_div_modify(uart_no, UART_CLK_FREQ / UartDev.baut_rate);
@@ -193,7 +187,7 @@ uart0_rx_intr_handler(void *para)
   if (READ_PERI_REG(UART_INT_RAW(uart_no)) & UART_FRM_ERR_INT_RAW) {
     uint32 now = system_get_time();
     if (last_frm_err == 0 || (now - last_frm_err) > one_sec) {
-      os_printf("UART framing error (bad baud rate?)\n");
+      DBG_UART("UART framing error (bad baud rate?)\n");
       last_frm_err = now;
     }
     // clear rx fifo (apparently this is not optional at this point)
@@ -211,7 +205,7 @@ uart0_rx_intr_handler(void *para)
   {
     //DBG_UART("stat:%02X",*(uint8 *)UART_INT_ENA(uart_no));
     ETS_UART_INTR_DISABLE();
-    system_os_post(recvTaskPrio, 0, 0);
+    post_usr_task(uart_recvTaskNum, 0);
   }
 }
 
@@ -242,9 +236,26 @@ uart_recvTask(os_event_t *events)
   ETS_UART_INTR_ENABLE();
 }
 
+// Turn UART interrupts off and poll for nchars or until timeout hits
+uint16_t ICACHE_FLASH_ATTR
+uart0_rx_poll(char *buff, uint16_t nchars, uint32_t timeout_us) {
+  ETS_UART_INTR_DISABLE();
+  uint16_t got = 0;
+  uint32_t start = system_get_time(); // time in us
+  while (system_get_time()-start < timeout_us) {
+    while (READ_PERI_REG(UART_STATUS(UART0)) & (UART_RXFIFO_CNT << UART_RXFIFO_CNT_S)) {
+      buff[got++] = READ_PERI_REG(UART_FIFO(UART0)) & 0xFF;
+      if (got == nchars) goto done;
+    }
+  }
+done:
+  ETS_UART_INTR_ENABLE();
+  return got;
+}
+
 void ICACHE_FLASH_ATTR
 uart0_baud(int rate) {
-  os_printf("UART %d baud\n", rate);
+  DBG_UART("UART %d baud\n", rate);
   uart_div_modify(UART0, UART_CLK_FREQ / rate);
 }
 
@@ -270,7 +281,7 @@ uart_init(UartBautRate uart0_br, UartBautRate uart1_br)
   // install uart1 putc callback
   os_install_putc1((void *)uart0_write_char);
 
-  system_os_task(uart_recvTask, recvTaskPrio, recvTaskQueue, recvTaskQueueLen);
+  uart_recvTaskNum = register_usr_task(uart_recvTask);
 }
 
 void ICACHE_FLASH_ATTR
@@ -281,7 +292,7 @@ uart_add_recv_cb(UartRecv_cb cb) {
       return;
     }
   }
-  os_printf("UART: max cb count exceeded\n");
+  DBG_UART("UART: max cb count exceeded\n");
 }
 
 void ICACHE_FLASH_ATTR

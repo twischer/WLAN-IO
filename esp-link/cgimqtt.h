@@ -1,3 +1,4 @@
+char *mqttState(void);
 #ifdef MQTT
 #ifndef CGIMQTT_H
 #define CGIMQTT_H

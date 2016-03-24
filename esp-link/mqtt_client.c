@@ -10,17 +10,12 @@
 #endif
 
 #ifdef MQTTCLIENT_DBG
-#define DBG_MQTTCLIENT(format, ...) os_printf(format, ## __VA_ARGS__)
+#define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__) } while(0)
 #else
-#define DBG_MQTTCLIENT(format, ...) do { } while(0)
+#define DBG(format, ...) do { } while(0)
 #endif
 
 MQTT_Client mqttClient; // main mqtt client used by esp-link
-
-#ifdef BRUNNELS
-char* statusTopicStr;
-static char* onlineMsgStr;
-#endif
 
 static MqttCallback connected_cb;
 static MqttCallback disconnected_cb;
@@ -28,11 +23,9 @@ static MqttCallback published_cb;
 static MqttDataCallback data_cb;
 
 void ICACHE_FLASH_ATTR
-mqttConnectedCb(uint32_t *args) {
-  DBG_MQTTCLIENT("MQTT Client: Connected\n");
-#if defined PWMOUT || defined BRUNNELS || defined HEATER
-  MQTT_Client* client = (MQTT_Client*)args;
-#endif
+mqttConnectedCb(MQTT_Client* client) {
+  DBG("MQTT Client: Connected\n");
+  //MQTT_Subscribe(client, "system/time", 0); // handy for testing
 
 #ifdef PWMOUT
   for (uint8_t i=0; i<PWM_CHANNEL; i++) {
@@ -40,32 +33,26 @@ mqttConnectedCb(uint32_t *args) {
   }
 #endif
 
-#ifdef BRUNNELS
-  MQTT_Publish(client, "announce/all", onlineMsgStr, 0, 0);
-#endif
-
 #ifdef HEATER
     MQTT_Subscribe(client, flashConfig.mqtt_heater, 0);
 #endif
 
   if (connected_cb)
-    connected_cb(args);
+    connected_cb(client);
 }
 
 void ICACHE_FLASH_ATTR
-mqttDisconnectedCb(uint32_t *args) {
-//  MQTT_Client* client = (MQTT_Client*)args;
-  DBG_MQTTCLIENT("MQTT Client: Disconnected\n");
+mqttDisconnectedCb(MQTT_Client* client) {
+  DBG("MQTT Client: Disconnected\n");
   if (disconnected_cb)
-    disconnected_cb(args);
+    disconnected_cb(client);
 }
 
 void ICACHE_FLASH_ATTR
-mqttPublishedCb(uint32_t *args) {
-//  MQTT_Client* client = (MQTT_Client*)args;
-  DBG_MQTTCLIENT("MQTT Client: Published\n");
+mqttPublishedCb(MQTT_Client* client) {
+  DBG("MQTT Client: Published\n");
   if (published_cb)
-    published_cb(args);
+    published_cb(client);
 }
 
 int ICACHE_FLASH_ATTR
@@ -149,9 +136,9 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
 #endif
 
 void ICACHE_FLASH_ATTR
-mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *data, uint32_t data_len) {
-  //  MQTT_Client* client = (MQTT_Client*)args;
-
+mqttDataCb(MQTT_Client* client, const char* topic, uint32_t topic_len,
+    const char *data, uint32_t data_len)
+{
 #ifdef MQTTCLIENT_DBG
   char *topicBuf = (char*)os_zalloc(topic_len + 1);
   char *dataBuf = (char*)os_zalloc(data_len + 1);
@@ -179,7 +166,7 @@ mqttDataCb(uint32_t *args, const char* topic, uint32_t topic_len, const char *da
 #endif
 
   if (data_cb)
-    data_cb(args, topic, topic_len, data, data_len);
+    data_cb(client, topic, topic_len, data, data_len);
 }
 
 void ICACHE_FLASH_ATTR
@@ -201,29 +188,6 @@ mqtt_client_init()
   MQTT_Init(&mqttClient, flashConfig.mqtt_host, flashConfig.mqtt_port, 0, flashConfig.mqtt_timeout,
     flashConfig.mqtt_clientid, flashConfig.mqtt_username, flashConfig.mqtt_password,
     flashConfig.mqtt_keepalive);
-
-// removed client_id concat for now until a better solution is devised
-//      statusTopicStr = (char*)os_zalloc(strlen(flashConfig.mqtt_clientid) + strlen(flashConfig.mqtt_status_topic) + 2);
-//      os_strcpy(statusTopicStr, flashConfig.mqtt_clientid);
-//      os_strcat(statusTopicStr, "/");
-
-#ifdef BRUNNELS
-    char* onlineMsg = " is online";
-    onlineMsgStr = (char*)os_zalloc(strlen(flashConfig.mqtt_clientid) + strlen(onlineMsg) + 1);
-    os_strcpy(onlineMsgStr, flashConfig.mqtt_clientid);
-    os_strcat(onlineMsgStr, onlineMsg);
-
-    char* offlineMsg = " is offline";
-    char* offlineMsgStr = (char*)os_zalloc(strlen(flashConfig.mqtt_clientid) + strlen(offlineMsg) + 1);
-    os_strcpy(offlineMsgStr, flashConfig.mqtt_clientid);
-    os_strcat(offlineMsgStr, offlineMsg);
-
-    char* lwt = "/lwt";
-    char *lwtMsgStr = (char*)os_zalloc(strlen(flashConfig.mqtt_clientid) + strlen(lwt) + 1);
-    os_strcpy(lwtMsgStr, flashConfig.mqtt_clientid);
-    os_strcat(lwtMsgStr, lwt);
-    MQTT_InitLWT(&mqttClient, lwtMsgStr, offlineMsg, 0, 0);
-#endif
 
   MQTT_OnConnected(&mqttClient, mqttConnectedCb);
   MQTT_OnDisconnected(&mqttClient, mqttDisconnectedCb);
