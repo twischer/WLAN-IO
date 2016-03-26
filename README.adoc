@@ -30,8 +30,10 @@ See schematics/dhtxx+heater.sch for a wiring example.
 
 Building for shift phase dimmer with zero crossing detection
 ------------------------------------------------------------
-This build supports MQTT, too. 
-    $ make COMPONENTS="io/mqtt io/pwm io/pwm/zcd" DEFINES="-DPWM_CHANNEL=1 -DPWM_INVERTED"
+This build supports MQTT, too.
+It will be build for ESP8266 on the module ESP03.
+Default is ESP02.
+    $ make COMPONENTS="io/mqtt io/pwm io/pwm/zcd" DEFINES="-DESP03 -DPWM_CHANNEL=1 -DPWM_INVERTED"
 See schematics/dimmerWall.sch for the needed components to run.
 
 

@@ -33,9 +33,15 @@ LOCAL uint8 pwm_channel = 0;									//pwm_channel value
 LOCAL struct pwm_single_param saved_single[PWM_CHANNEL + 1];	//saved_single param
 LOCAL uint8 saved_channel = 0;								//saved_channel value
 
-LOCAL uint8 pwm_out_io_num[PWM_CHANNEL] = {PWM_0_OUT_IO_NUM,
-                                           PWM_1_OUT_IO_NUM, PWM_2_OUT_IO_NUM
+LOCAL uint8 pwm_out_io_num[PWM_CHANNEL] = {PWM_0_OUT_IO_NUM
+#if PWM_CHANNEL >= 2
+                                           , PWM_1_OUT_IO_NUM
+#if PWM_CHANNEL >= 3
+                                           , PWM_2_OUT_IO_NUM
+#endif
+#endif
                                           };	//each channel gpio number
+
 LOCAL uint8 pwm_current_channel = 0;							//current pwm channel in pwm_tim1_intr_handler
 LOCAL uint16 pwm_gpio = 0;									//all pwm gpio bits
 
@@ -349,8 +355,12 @@ pwm_init(uint16 freq, uint8 *duty)
     //RTC_REG_WRITE(FRC1_LOAD_ADDRESS, 0);
 
     PIN_FUNC_SELECT(PWM_0_OUT_IO_MUX, PWM_0_OUT_IO_FUNC);
+#if PWM_CHANNEL >= 2
     PIN_FUNC_SELECT(PWM_1_OUT_IO_MUX, PWM_1_OUT_IO_FUNC);
+#if PWM_CHANNEL >= 3
     PIN_FUNC_SELECT(PWM_2_OUT_IO_MUX, PWM_2_OUT_IO_FUNC);
+#endif
+#endif
 
     for (i = 0; i < PWM_CHANNEL; i++) {
         pwm_gpio |= (1 << pwm_out_io_num[i]);
