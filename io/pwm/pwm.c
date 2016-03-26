@@ -297,10 +297,17 @@ void pwm_tim1_intr_handler(void)
         update_flg = 0;	//clear update flag
         pwm_current_channel = 0;
 
+#ifdef PWM_INVERTED
+        gpio_output_set(pwm_single[pwm_channel - 1].gpio_clear,
+                        pwm_single[pwm_channel - 1].gpio_set,
+                        pwm_gpio,
+                        0);
+#else
         gpio_output_set(pwm_single[pwm_channel - 1].gpio_set,
                         pwm_single[pwm_channel - 1].gpio_clear,
                         pwm_gpio,
                         0);
+#endif
 
         //if all channels' duty is 0 or 255,set intr period as pwm.period
         if (pwm_channel != 1) {
@@ -309,9 +316,15 @@ void pwm_tim1_intr_handler(void)
             RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
         }
     } else {
+#ifdef PWM_INVERTED
+        gpio_output_set(pwm_single[pwm_current_channel].gpio_clear,
+                        pwm_single[pwm_current_channel].gpio_set,
+                        pwm_gpio, 0);
+#else
         gpio_output_set(pwm_single[pwm_current_channel].gpio_set,
                         pwm_single[pwm_current_channel].gpio_clear,
                         pwm_gpio, 0);
+#endif
         pwm_current_channel++;
         RTC_REG_WRITE(FRC1_LOAD_ADDRESS, pwm_single[pwm_current_channel].h_time);
     }

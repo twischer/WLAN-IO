@@ -24,6 +24,11 @@
 
 #define PWM_CHANNEL 3
 
+/* define it to invert the PWM output.
+ * If defined the PWM wave is first low and secondly high
+ */
+#define PWM_INVERTED
+
 
 #undef SHOW_HEAP_USE
 #undef DEBUGIP
