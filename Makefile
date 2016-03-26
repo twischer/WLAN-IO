@@ -85,8 +85,10 @@ LED_SERIAL_PIN      ?= 14
 
 # Optional Modules mqtt pwm artnet heater dhtxx
 #MODULES ?= io/mqtt io/rest syslog cmd esp-link/cgiadv esp-link/log serial/console serial/serbridge io/pwm io/artnet io/heater io/dhtxx
-#MODULES ?= io/mqtt io/pwm io/artnet
-MODULES ?= io/mqtt io/heater io/dhtxx
+
+# COPONENTS defining by calling make e.g.
+# $ make COMPONENTS="io/mqtt io/pwm io/artnet"
+MODULES += $(COMPONENTS)
 
 # --------------- esphttpd config options ---------------
 
@@ -230,7 +232,9 @@ TARGET		= httpd
 # espressif tool to concatenate sections for OTA upload using bootloader v1.2+
 APPGEN_TOOL	?= gen_appbin.py
 
-CFLAGS=
+# use variable DEFINES from make call for choosing some components features e.g.
+# $ make COMPONENTS="io/mqtt io/pwm" DEFINES="-DPWM_INVERTED"
+CFLAGS=$(DEFINES)
 
 # set defines for optional modules
 ifneq (,$(findstring io/pwm,$(MODULES)))

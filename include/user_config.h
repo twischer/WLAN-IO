@@ -22,12 +22,21 @@
 #define SLEEP_TIME      15
 
 
+#ifndef PWM_CHANNEL
+/* Defaults to 3 channels,
+ * becasue the main use case is a RGB para
+ */
 #define PWM_CHANNEL 3
+#endif
 
 /* define it to invert the PWM output.
- * If defined the PWM wave is first low and secondly high
+ * If defined the PWM wave is first low and secondly high.
+ *
+ * To mind changing source code for example call make with
+ * $ make COMPONENTS="io/mqtt io/pwm" DEFINES="-DPWM_INVERTED"
+ * instead.
  */
-#define PWM_INVERTED
+//#define PWM_INVERTED
 
 
 #undef SHOW_HEAP_USE
