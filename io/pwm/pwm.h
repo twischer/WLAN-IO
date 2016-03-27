@@ -53,6 +53,8 @@ bool pwm_set_duty(uint8 duty, uint8 channel);
 uint8 pwm_get_duty(uint8 channel);
 void pwm_set_freq(uint16 freq);
 uint16 pwm_get_freq(void);
+
+void pwm_sync();
 #endif
 
 

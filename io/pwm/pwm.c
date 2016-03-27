@@ -16,6 +16,7 @@
 #include "user_interface.h"
 #include "espmissingincludes.h"
 #include "pwm.h"
+#include "io/pwm/zcd/zcd.h"
 
 LOCAL struct pwm_param pwm;
 
@@ -94,6 +95,14 @@ pwm_insert_sort(struct pwm_single_param pwm[], uint8 n)
         }
     }
 }
+
+
+void pwm_sync()
+{
+    // TODO only sync if needed and the PWM is not processing
+    // e.g. fully switched on or fully switched off
+}
+
 
 void ICACHE_FLASH_ATTR
 pwm_start(void)
@@ -373,5 +382,9 @@ pwm_init(uint16 freq, uint8 *duty)
     ETS_FRC_TIMER1_INTR_ATTACH(pwm_tim1_intr_handler, NULL);
     TM1_EDGE_INT_ENABLE();
     ETS_FRC1_INTR_ENABLE();
+
+#ifdef IO_PWM_ZCD
+    zcd_init();
+#endif
 }
 
