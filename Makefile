@@ -264,14 +264,6 @@ ifneq (,$(findstring io/dhtxx,$(MODULES)))
 endif
 
 
-ifneq (,$(findstring syslog,$(MODULES)))
-	CFLAGS		+= -DSYSLOG
-endif
-
-ifneq (,$(findstring cmd,$(MODULES)))
-	CFLAGS		+= -DCMD
-endif
-
 ifneq (,$(findstring esp-link/cgiadv,$(MODULES)))
 	CFLAGS		+= -DCGI_ADVANCED
 endif
@@ -287,6 +279,12 @@ endif
 ifneq (,$(findstring serial/serbridge,$(MODULES)))
 	CFLAGS		+= -DSERIAL_BRIDGE
 endif
+
+# add defines for all used components
+MODULES_WITHOUT_SLASH	:= $(subst /,_,$(MODULES))
+MODULES_UPPER_CASE	:= $(shell echo $(MODULES_WITHOUT_SLASH) | tr a-z A-Z)
+CFLAGS			+= $(addprefix -D,$(MODULES_UPPER_CASE))
+
 
 # which modules (subdirectories) of the project to include in compiling
 LIBRARIES_DIR 	= libraries
