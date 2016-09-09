@@ -66,6 +66,7 @@
 #undef OPTIBOOT_DBG
 #undef SYSLOG_DBG
 #undef CGISERVICES_DBG
+#define ARTNET_DBG
 #define ZCD_DBG
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique

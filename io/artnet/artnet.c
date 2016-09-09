@@ -70,6 +70,13 @@
 
 #define HTONS(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
 
+#ifdef ARTNET_DBG
+#define DBG(format, ...) do { os_printf(format "\n", ## __VA_ARGS__); } while(0)
+#else
+#define DBG(format, ...) do { } while(0)
+#endif
+
+
 static const char longname[] = "ESP based Art-Net Node";
 const uint8_t artnet_net = 0;
 
@@ -284,7 +291,7 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 		// program ip
 		if ((ipprog->command & 4) == 4) {
 			struct ip_info ipconfig;
-            PDBG(ARTNET_LOGL, "Received ip prog packet!\r\n");
+            DBG("Received ip prog packet!\r\n");
 			
 			
 			memcpy(&ipconfig.ip.addr, &ipprog->progIp[0],4);
@@ -308,7 +315,7 @@ void processIpProgPacket (struct espconn *conn, struct artnet_ipprog *ipprog, un
 static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned short packetlen)
 {
 	const struct artnet_dmx* const dmx = (struct artnet_dmx*)data;
-	//PDBG("Received artnet output packet for universe %u\r\n", dmx->universe);
+    //DBG("Received artnet output packet for universe %u\r\n", dmx->universe);
 	
 	if (dmx->universe == ((flashConfig.artnet_subnet << 4) | flashConfig.artnet_universe))
 	{
@@ -317,7 +324,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 		/* overwrite chanel count, if bigger than package */
 		const uint16 maxChannels = packetlen - sizeof(struct artnet_dmx);
 		if(dmxChannelCount > maxChannels) {
-            PWRN(ARTNET_LOGL, "Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
+            DBG("Wrong Channel count in Art Net package. (length %d, max %d)\n", dmxChannelCount, maxChannels);
 			dmxChannelCount = maxChannels;
 		}
 
@@ -336,7 +343,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 			/* pwm_start has to be called, if the values have changed */
 			const uint16 dmxIndex = flashConfig.artnet_pwmstart - 1 + i;
 			if ( pwm_set_duty(dmx->data[dmxIndex], i) ) {
-                PDBG(ARTNET_LOGL, "%d: %d\n", i, dmx->data[dmxIndex]);
+                DBG("%d: %d\n", i, dmx->data[dmxIndex]);
 				dataChanged = true;
 			}
 		}
@@ -352,7 +359,7 @@ static void ICACHE_FLASH_ATTR artnet_recv_opoutput(unsigned char *data, unsigned
 // receive Art-Net packet
 static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short length) {
 
-	//PDBG("Get on Art Net Port\n");
+    //DBG("Get on Art Net Port\n");
 	unsigned char *eth_buffer =(unsigned char *)data;
 	
 	struct artnet_header *header;
@@ -360,7 +367,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	
 	//check the id
 	if(os_strcmp((char*)&header->id,"Art-Net\0") != 0){
-        PWRN(ARTNET_LOGL, "Wrong ArtNet header, discarded\r\n");
+        DBG("Wrong ArtNet header, discarded\r\n");
 		return;
 	}
 
@@ -368,30 +375,30 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 	{
 		//OP_POLL
 		case (OP_POLL):{
-			//PDBG("Received artnet poll packet!\r\n");
+            //DBG("Received artnet poll packet!\r\n");
 			//reply_transmit = 2;
 			artnet_sendPollReply();
 			return;
 		}
 		//OP_POLLREPLY
 		case (OP_POLLREPLY):{
-			//PDBG("Received artnet poll reply packet!\r\n");
+            //DBG("Received artnet poll reply packet!\r\n");
 			return;
 		}
 		//OP_OUTPUT
 		case (OP_OUTPUT):{
-			//PDBG("Received artnet output packet!\r\n");
+            //DBG("Received artnet output packet!\r\n");
 			artnet_recv_opoutput (&eth_buffer[0],length);
 			return;
 		}
 		//OP_ADDRESS
 		case (OP_ADDRESS):{
-			//PDBG("Received artnet address packet!\r\n");
+            //DBG("Received artnet address packet!\r\n");
 			return;
 		}
 		//OP_IPPROG
 		case (OP_IPPROG):{
-			//PDBG("Received artnet prog packet!\r\n");
+            //DBG("Received artnet prog packet!\r\n");
 			//processIpProgPacket ((struct espconn *)arg,&eth_buffer[0],length);
 			return;
 		}
@@ -403,7 +410,7 @@ static void ICACHE_FLASH_ATTR artnet_get(void *arg, char *data, unsigned short l
 // Art-Net init
 void ICACHE_FLASH_ATTR artnet_init()
 {
-    PDBG(ARTNET_LOGL, "Art-Net init (sub net %u, universe %u, pwmstart %u)", flashConfig.artnet_subnet,
+    DBG("Art-Net init (sub net %u, universe %u, pwmstart %u)", flashConfig.artnet_subnet,
 		 flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 	
     artnetconn.type = ESPCONN_UDP;

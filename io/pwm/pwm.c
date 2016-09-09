@@ -109,7 +109,7 @@ void pwm_sync()
     }
 
     /* check how far the timer is away from the power line phase */
-    const uint32 timer1_counter = RTC_REG_READ(FRC1_COUNT_ADDRESS);
+//    const uint32 timer1_counter = RTC_REG_READ(FRC1_COUNT_ADDRESS);
 
     // TODO calulate difference to restart of timer in us
 
