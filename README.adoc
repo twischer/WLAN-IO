@@ -7,12 +7,12 @@ The ESP8266 is used as an Art-Net-Node and the 3 output pins will be used as PWM
 The inital version was copied from http://www.ulrichradig.de/home/index.php/dmx/wlan-art-net-node.
 
 
-# Building WLAN-RGB-Para with MQTT and Art-Net support
+### Building WLAN-RGB-Para with MQTT and Art-Net support
     $ make COMPONENTS="io/mqtt io/pwm io/artnet"
 See schematics/LEDDriver.sch
 
 
-# Energy consumtion
+### Energy consumtion
 Supply	Off				On
 4,8V	75mA (360mW)
 8V		75mA (600mW)	3,40A (27,2W)
