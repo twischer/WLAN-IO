@@ -101,6 +101,22 @@ void pwm_sync()
 {
     // TODO only sync if needed and the PWM is not processing
     // e.g. fully switched on or fully switched off
+
+
+    /* do not sync, if not all PWM channels are fully high or low */
+    if (pwm_channel <= 1) {
+        return;
+    }
+
+    /* check how far the timer is away from the power line phase */
+    const uint32 timer1_counter = RTC_REG_READ(FRC1_COUNT_ADDRESS);
+
+    // TODO calulate difference to restart of timer in us
+
+    /* restart timer.
+     * Only possible, if all outputs fully high or low.
+     */
+    RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
 }
 
 
