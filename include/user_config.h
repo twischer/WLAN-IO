@@ -5,12 +5,6 @@
 #include <_mingw.h>
 #endif
 
-#define LOGL_OFF     0
-#define LOGL_ERR     1
-#define LOGL_WRN     2
-#define LOGL_INF     3
-#define LOGL_DBG     4
-
 
 /* enter the deep sleep mode,
  * if all PWM channels have to be set to off
@@ -22,7 +16,21 @@
 #define SLEEP_TIME      15
 
 
+#ifndef PWM_CHANNEL
+/* Defaults to 3 channels,
+ * becasue the main use case is a RGB para
+ */
 #define PWM_CHANNEL 3
+#endif
+
+/* define it to invert the PWM output.
+ * If defined the PWM wave is first low and secondly high.
+ *
+ * To mind changing source code for example call make with
+ * $ make COMPONENTS="io/mqtt io/pwm" DEFINES="-DPWM_INVERTED"
+ * instead.
+ */
+//#define PWM_INVERTED
 
 
 #undef SHOW_HEAP_USE
@@ -58,13 +66,8 @@
 #undef OPTIBOOT_DBG
 #undef SYSLOG_DBG
 #undef CGISERVICES_DBG
-
-#define ARTNET_LOGL     LOGL_OFF
-#define PWMOUT_LOGL     LOGL_OFF
-#define SLEEP_LOGL      LOGL_OFF
-#define HEATER_LOGL     LOGL_OFF
-#define DHTXX_LOGL      LOGL_OFF
-
+#define ARTNET_DBG
+#define ZCD_DBG
 
 // If defined, the default hostname for DHCP will include the chip ID to make it unique
 #undef CHIP_IN_HOSTNAME
@@ -76,27 +79,5 @@
 #define LOG_INFO(format, ...) do { } while(0)
 #define LOG_ERR(format, ...) do { } while(0)
 #endif
-
-#ifdef DEBUG
-#define LOG(type, logl, fmt, ...) \
-    if (logl >= type) { \
-        os_printf(#type "[%s:%u]" fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
-    }
-
-#define PERR(...)	LOG(LOGL_ERR, ##__VA_ARGS__)
-#define PWRN(...)	LOG(LOGL_WRN, ##__VA_ARGS__)
-#define PINF(...)	LOG(LOGL_INF, ##__VA_ARGS__)
-#define PDBG(...)	LOG(LOGL_DBG, ##__VA_ARGS__)
-
-#else
-#define PERR(...)
-#define PWRN(...)
-#define PINF(...)
-#define PDBG(...)
-#endif
-
-
-extern char* esp_link_version;
-extern uint8_t UTILS_StrToIP(const char* str, void *ip);
 
 #endif

@@ -1,3 +1,4 @@
+.
 cmd
 esp-link
 esp-link/cgiadv
@@ -18,3 +19,4 @@ serial/console
 serial/serbridge
 syslog
 /opt/esp-open-sdk/sdk/include
+io/pwm/zcd

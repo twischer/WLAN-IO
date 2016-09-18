@@ -71,7 +71,7 @@ static int ICACHE_FLASH_ATTR
 mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const data, const uint32_t data_len) {
     /* has to be between 1 and 3 digits (0..100) */
     if (data_len < 1 || data_len > 3) {
-        PWRN(PWMOUT_LOGL, "data with wrong size");
+        DBG("data with wrong size");
         return -1;
     }
 
@@ -85,13 +85,13 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
 
 
     if (channel >= PWM_CHANNEL) {
-        PWRN(PWMOUT_LOGL, "Higher channel than PWM output number");
+        DBG("Higher channel than PWM output number");
         return -2;
     }
 
     const uint8_t data_value = mqttGetNumber(data, data_len);
     if (data_value > 100) {
-        PWRN(PWMOUT_LOGL, "data value out of range");
+        DBG("data value out of range");
         return -3;
     }
 
@@ -102,7 +102,7 @@ mqttPwmData(const char* const topic, const uint32_t topic_len, const char* const
         pwm_start();
     }
 
-    PDBG(PWMOUT_LOGL, "PWM output %u changed to %u", channel, duty);
+    DBG("PWM output %u changed to %u", channel, duty);
 
 #ifdef SLEEP_IF_ALL_PWMS_OFF
     static bool channels_off[PWM_CHANNEL] = {false, false, false};

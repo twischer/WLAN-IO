@@ -16,6 +16,7 @@
 #include "user_interface.h"
 #include "espmissingincludes.h"
 #include "pwm.h"
+#include "io/pwm/zcd/zcd.h"
 
 LOCAL struct pwm_param pwm;
 
@@ -33,9 +34,15 @@ LOCAL uint8 pwm_channel = 0;									//pwm_channel value
 LOCAL struct pwm_single_param saved_single[PWM_CHANNEL + 1];	//saved_single param
 LOCAL uint8 saved_channel = 0;								//saved_channel value
 
-LOCAL uint8 pwm_out_io_num[PWM_CHANNEL] = {PWM_0_OUT_IO_NUM,
-                                           PWM_1_OUT_IO_NUM, PWM_2_OUT_IO_NUM
+LOCAL uint8 pwm_out_io_num[PWM_CHANNEL] = {PWM_0_OUT_IO_NUM
+#if PWM_CHANNEL >= 2
+                                           , PWM_1_OUT_IO_NUM
+#if PWM_CHANNEL >= 3
+                                           , PWM_2_OUT_IO_NUM
+#endif
+#endif
                                           };	//each channel gpio number
+
 LOCAL uint8 pwm_current_channel = 0;							//current pwm channel in pwm_tim1_intr_handler
 LOCAL uint16 pwm_gpio = 0;									//all pwm gpio bits
 
@@ -88,6 +95,30 @@ pwm_insert_sort(struct pwm_single_param pwm[], uint8 n)
         }
     }
 }
+
+
+void pwm_sync()
+{
+    // TODO only sync if needed and the PWM is not processing
+    // e.g. fully switched on or fully switched off
+
+
+    /* do not sync, if not all PWM channels are fully high or low */
+    if (pwm_channel <= 1) {
+        return;
+    }
+
+    /* check how far the timer is away from the power line phase */
+//    const uint32 timer1_counter = RTC_REG_READ(FRC1_COUNT_ADDRESS);
+
+    // TODO calulate difference to restart of timer in us
+
+    /* restart timer.
+     * Only possible, if all outputs fully high or low.
+     */
+    RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
+}
+
 
 void ICACHE_FLASH_ATTR
 pwm_start(void)
@@ -297,10 +328,17 @@ void pwm_tim1_intr_handler(void)
         update_flg = 0;	//clear update flag
         pwm_current_channel = 0;
 
+#ifdef PWM_INVERTED
+        gpio_output_set(pwm_single[pwm_channel - 1].gpio_clear,
+                        pwm_single[pwm_channel - 1].gpio_set,
+                        pwm_gpio,
+                        0);
+#else
         gpio_output_set(pwm_single[pwm_channel - 1].gpio_set,
                         pwm_single[pwm_channel - 1].gpio_clear,
                         pwm_gpio,
                         0);
+#endif
 
         //if all channels' duty is 0 or 255,set intr period as pwm.period
         if (pwm_channel != 1) {
@@ -309,9 +347,15 @@ void pwm_tim1_intr_handler(void)
             RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
         }
     } else {
+#ifdef PWM_INVERTED
+        gpio_output_set(pwm_single[pwm_current_channel].gpio_clear,
+                        pwm_single[pwm_current_channel].gpio_set,
+                        pwm_gpio, 0);
+#else
         gpio_output_set(pwm_single[pwm_current_channel].gpio_set,
                         pwm_single[pwm_current_channel].gpio_clear,
                         pwm_gpio, 0);
+#endif
         pwm_current_channel++;
         RTC_REG_WRITE(FRC1_LOAD_ADDRESS, pwm_single[pwm_current_channel].h_time);
     }
@@ -336,8 +380,12 @@ pwm_init(uint16 freq, uint8 *duty)
     //RTC_REG_WRITE(FRC1_LOAD_ADDRESS, 0);
 
     PIN_FUNC_SELECT(PWM_0_OUT_IO_MUX, PWM_0_OUT_IO_FUNC);
+#if PWM_CHANNEL >= 2
     PIN_FUNC_SELECT(PWM_1_OUT_IO_MUX, PWM_1_OUT_IO_FUNC);
+#if PWM_CHANNEL >= 3
     PIN_FUNC_SELECT(PWM_2_OUT_IO_MUX, PWM_2_OUT_IO_FUNC);
+#endif
+#endif
 
     for (i = 0; i < PWM_CHANNEL; i++) {
         pwm_gpio |= (1 << pwm_out_io_num[i]);
@@ -350,5 +398,9 @@ pwm_init(uint16 freq, uint8 *duty)
     ETS_FRC_TIMER1_INTR_ATTACH(pwm_tim1_intr_handler, NULL);
     TM1_EDGE_INT_ENABLE();
     ETS_FRC1_INTR_ENABLE();
+
+#ifdef IO_PWM_ZCD
+    zcd_init();
+#endif
 }
 

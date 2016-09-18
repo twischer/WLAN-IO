@@ -1,9 +1,10 @@
-pwm aus sdk verwenden
-- GEHT NICHT da nicht invertieren
+Nach alternativen für gpio16 suchen
+- vielleicht ohne nummern vertauschen
 
-Vergleichen welcher der aktuelleste PWM
-dafür alle SDKs herunterladen
-esp 1.4.0 enthält auch kein PWM mehr
+
+ZCD
+
+
 
 sync für ZCD mit RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.period));
 	- Damit nur sync, wenn 0 oder 255, andernfalls periode zu lang
@@ -11,3 +12,6 @@ sync für ZCD mit RTC_REG_WRITE(FRC1_LOAD_ADDRESS, US_TO_RTC_TIMER_TICKS(pwm.per
 - wenn alle kanäle 0 oder 255 zählerstand vom timer1 (FRC1_COUNT_ADDRESS) überprüfen bei ZCD
 	- sollte kurz vor oder kurz nach überlauf sein
 	- zählt runter
+
+Softes ein und ausschalten über PWM ermöglichen
+- Konfigurierbar, da mit RGB-Para nicht erwünscht

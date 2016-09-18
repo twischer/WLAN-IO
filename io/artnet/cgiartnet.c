@@ -4,6 +4,12 @@
 #include "config.h"
 #include "cgiartnet.h"
 
+#ifdef ARTNET_DBG
+#define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
+#else
+#define DBG(format, ...) do { } while(0)
+#endif
+
 
 // Cgi to return MQTT settings
 int ICACHE_FLASH_ATTR cgiArtNetGet(HttpdConnData *connData) {
@@ -80,7 +86,7 @@ int ICACHE_FLASH_ATTR cgiArtNetSet(HttpdConnData *connData) {
   flashConfig.artnet_pwmstart = atoi(buffer);
 
 
-  PINF(ARTNET_LOGL, "Saving config (sub %u univ %u pwm %u)\n", flashConfig.artnet_subnet, flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
+  DBG("Saving config (sub %u univ %u pwm %u)\n", flashConfig.artnet_subnet, flashConfig.artnet_universe, flashConfig.artnet_pwmstart);
 
   if (configSave()) {
 	httpdRedirect(connData, "/artnet.html");

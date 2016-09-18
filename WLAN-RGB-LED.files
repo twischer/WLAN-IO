@@ -88,3 +88,5 @@ serial/uart.c
 serial/uart.h
 syslog/syslog.c
 syslog/syslog.h
+io/pwm/zcd/zcd.c
+io/pwm/zcd/zcd.h

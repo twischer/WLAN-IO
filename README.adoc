@@ -1,3 +1,52 @@
+WLAN-IO
+=======
+
+WLAN-RGB-Para
+-------------
+The ESP8266 is used as an Art-Net-Node and the 3 output pins will be used as PWM outputs. So a RGB-LED could be directly connected and controlled over WLAN.
+The inital version was copied from http://www.ulrichradig.de/home/index.php/dmx/wlan-art-net-node.
+
+
+### Building WLAN-RGB-Para with MQTT and Art-Net support
+    $ make COMPONENTS="io/mqtt io/pwm io/artnet"
+See schematics/LEDDriver.sch
+
+
+### Energy consumtion
+Supply	Off				On
+4,8V	75mA (360mW)
+8V		75mA (600mW)	3,40A (27,2W)
+10V						2,58A
+12V						2,03A
+14V						1,68A
+15V		75mA (1,13W)	1,57A (23,6W)
+
+
+Building for heater controll and DHT22 support controlling over MQTT
+--------------------------------------------------------------------
+    $ make COMPONENTS="io/mqtt io/heater io/dhtxx"
+See schematics/dhtxx+heater.sch for a wiring example.
+
+
+Building for shift phase dimmer with zero crossing detection
+------------------------------------------------------------
+This build supports MQTT, too.
+It will be build for ESP8266 on the module ESP03.
+Default is ESP02.
+    $ make COMPONENTS="io/mqtt io/pwm io/pwm/zcd" DEFINES="-DESP03 -DPWM_CHANNEL=1 -DPWM_INVERTED"
+See schematics/dimmerWall.sch for the needed components to run.
+
+
+HOWTO test mosquitto (MQTT broker)
+----------------------------------
+    $ sudo apt-get install mosquitto mosquitto-clients
+
+    $ mosquitto_pub -h [HOST] -m hello -t test -r
+
+    $ mosquitto_sub -h [HOST] -t test -d
+
+
+
 ESP-LINK: Wifi-Serial Bridge w/REST&MQTT
 ========================================
 Thorsten von Eicken

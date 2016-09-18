@@ -40,7 +40,10 @@ typedef struct {
   char     mdns_servername[32];           
   int8_t   timezone_offset;
 
-  char     mqtt_pwms[PWM_CHANNEL][32];
+  /* PWM_CHANNEL is not used to make configuration structure static
+   * for all variants of the WLAN-IO build
+   */
+  char     mqtt_pwms[3][32];
   char     mqtt_heater[32];
   char     mqtt_temperature[32];
   char     mqtt_humidity[32];
