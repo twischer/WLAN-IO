@@ -19,7 +19,10 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "cgi.h"
 #include "cgiflash.h"
 #include "espfs.h"
-#include "safeupgrade.h"
+
+#ifndef RELEASE
+#include "safeupgrade/safeupgrade.h"
+#endif
 
 #define SPI_FLASH_MEM_EMU_START_ADDR    0x40200000
 #define USER1_BIN_SPI_FLASH_ADDR        4*1024                                      // either start after 4KB boot partition
@@ -119,10 +122,12 @@ int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData) {
   httpdSend(connData, next, -1);
   DBG("Next firmware: %s (got %d)\n", next, id);
 
-  /* the httpd works and a firmeware upgrade would be possible.
+#ifndef RELEASE
+  /* the httpd works and a firmware upgrade would be possible.
    * So the last upgrade was successful
    */
   cgiFlashSetUpgradeSuccessful();
+#endif
 
   return HTTPD_CGI_DONE;
 }

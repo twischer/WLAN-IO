@@ -15,7 +15,6 @@
 #include "cgi.h"
 #include "cgiwifi.h"
 #include "cgiflash.h"
-#include "safeupgrade.h"
 #include "auth.h"
 #include "espfs.h"
 #include "uart.h"
@@ -38,6 +37,10 @@
 #ifdef SERIAL_BRIDGE
 #include "serbridge.h"
 #include "serled.h"
+#endif
+
+#ifndef RELEASE
+#include "safeupgrade/safeupgrade.h"
 #endif
 
 #ifdef CGI_ADVANCED
@@ -150,10 +153,12 @@ extern void app_init(void);
 extern void mqtt_client_init(void);
 
 void user_rf_pre_init(void) {
+#ifndef RELEASE
   /* undo upgrade, if the first boot failes
    * with an watchdog reset, soft watchdog reset or an exception
    */
   cgiFlashCheckUpgradeHealthy();
+#endif
 
   //default is enabled
   system_set_os_print(DEBUG_SDK);

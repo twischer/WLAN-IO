@@ -13,6 +13,12 @@
 # `VERBOSE=1 make ...` will print debug info
 # `ESP_HOSTNAME=my.esp.example.com make wiflash` is an easy way to override a variable
 
+# Enable release to build a stable, already well tested version
+# e.g. safe upgrade will be disabled
+# So the old firmware can not be booted, if the new one does not boot successfully
+# RELEASE=1
+#`RELEASE=1 make ...`
+
 # optional local configuration file
 -include local.conf
 
@@ -280,9 +286,16 @@ ifneq (,$(findstring serial/serbridge,$(MODULES)))
 	CFLAGS		+= -DSERIAL_BRIDGE
 endif
 
+ifeq ("$(RELEASE)","1")
+	CFLAGS		+= -DRELEASE=1
+else
+	MODULES		+=    esp-link/safeupgrade
+endif
+
 # add defines for all used components
 MODULES_WITHOUT_SLASH	:= $(subst /,_,$(MODULES))
-MODULES_UPPER_CASE	:= $(shell echo $(MODULES_WITHOUT_SLASH) | tr a-z A-Z)
+MODULES_WITHOUT_MINUS	:= $(subst -,_,$(MODULES_WITHOUT_SLASH))
+MODULES_UPPER_CASE	:= $(shell echo $(MODULES_WITHOUT_MINUS) | tr a-z A-Z)
 CFLAGS			+= $(addprefix -D,$(MODULES_UPPER_CASE))
 
 

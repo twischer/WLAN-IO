@@ -20,3 +20,4 @@ serial/serbridge
 syslog
 /opt/esp-open-sdk/sdk/include
 io/pwm/zcd
+esp-link/safeupgrade
